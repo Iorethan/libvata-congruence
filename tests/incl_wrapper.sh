@@ -108,6 +108,10 @@ case "${OPERATION}" in
     ${VATA} -r expl -t incl -o dir=up,sim=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
+  congrup)
+    ${VATA} -r expl -t incl -o alg=congr "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
   symdown-rec)
     ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"

@@ -87,6 +87,10 @@ add_library(libvata STATIC
 	util.cc
 	sym_var_asgn.cc
 	symbolic_tree_aut_base_core.cc
+	explicit_tree_congr_incl_up.cc
+	explicit_tree_congr_inclusion.cc
+	explicit_tree_congr_equivalence.cc
+	explicit_tree_congr_base.cc
 )
 
 set_target_properties(libvata PROPERTIES

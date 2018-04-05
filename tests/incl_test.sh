@@ -2,6 +2,8 @@
 
 ################################# CONSTANTS ##################################
 
+export LC_NUMERIC="en_US.UTF-8"
+
 # default timeout (can be overriden from command line)
 timeout=300;
 
@@ -12,46 +14,54 @@ SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
 
 METHODS=( 
-  "expldown-rec"
-  "old-expldown-rec"
-  "expldown-rec-optC"
-  "old-expldown-rec-optC"
-  "expldown-nonrec"
-  "old-expldown-nonrec"
+#  "expldown-rec"
+#  "expldown-rec-optC"
+#  "expldown-nonrec"
 
-  "expldown-rec-sim"
-  "old-expldown-rec-sim"
-  "expldown-rec-sim-optC"
-  "old-expldown-rec-sim-optC"
-  "expldown-nonrec-sim"
-  "old-expldown-nonrec-sim"
+#  "expldown-rec-sim"
+#  "expldown-rec-sim-optC"
+#  "expldown-nonrec-sim"
 
-  "expldown-rec-sim-nosimtime"
-  "old-expldown-rec-sim-nosimtime"
-  "expldown-rec-sim-optC-nosimtime"
-  "old-expldown-rec-sim-optC-nosimtime"
-  "expldown-nonrec-sim-nosimtime"
-  "old-expldown-nonrec-sim-nosimtime"
+#  "expldown-rec-sim-nosimtime"
+#  "expldown-rec-sim-optC-nosimtime"
+#  "expldown-nonrec-sim-nosimtime"
 
   "explup"
-  "old-explup"
-  "explup-sim"
-  "old-explup-sim"
-  "explup-sim-nosimtime"
-  "old-explup-sim-nosimtime"
+#  "explup-sim"
+#  "explup-sim-nosimtime"
+
+  "congrup"
 
 #  "symdown-rec"
+#  "symup"
+
+### Deprecated ###
+#  "old-expldown-rec"
+#  "old-expldown-rec-optC"
+#  "old-expldown-nonrec"
+
+#  "old-expldown-rec-sim"
+#  "old-expldown-rec-sim-optC"
+#  "old-expldown-nonrec-sim"
+
+#  "old-expldown-rec-sim-nosimtime"
+#  "old-expldown-rec-sim-optC-nosimtime"
+#  "old-expldown-nonrec-sim-nosimtime"
+
+#  "old-explup"
+#  "old-explup-sim"
+#  "old-explup-sim-nosimtime"
+
 #  "symdown-rec-sim"
 #  "symdown-rec-sim-nosimtime"
 #  "symdown-rec-optC"
 #  "symdown-rec-sim-optC"
 #  "symdown-rec-sim-optC-nosimtime"
-#  "symup"
 
 #  "explfa-ac"
 #  "explfa-ac-sim"
-  "explfa-congr"
-  "explfa-congr-sim"
+#  "explfa-congr"
+#  "explfa-congr-sim"
 )
 
 ################################# FUNCTIONS ##################################
@@ -97,14 +107,16 @@ function runall {
       [ "$ret" == "0" ] || die "inclusion test failed! ($ret)"; 
       if [ "$res" == "?" ]; then
         res=${v[0]};
+        text="ok"
       else
-        [ "$res" == ${v[0]} ] || die "inconsistent results! ($res != ${v[0]})";
+        [ "$res" == ${v[0]} ] || text=$(printf "($res != ${v[0]})");
       fi;
       num=$(printf "%.4f" "${v[1]}")
       printcolumn "${num}";
     fi;
   done;
   printcolumn "$res"
+  printcolumn "$text"
   printf "\n"
 }
 

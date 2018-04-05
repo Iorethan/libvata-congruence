@@ -1,5 +1,5 @@
 BUILD_DIR=build
-# MAKE_FLAGS=-j 8
+MAKE_FLAGS=-j 8
 # TEST_FLAGS=-j 8
 
 .PHONY: all debug release doc clean test
