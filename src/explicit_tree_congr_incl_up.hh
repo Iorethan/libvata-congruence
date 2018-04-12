@@ -41,6 +41,10 @@ namespace ExplicitTreeUpwardCongruence{
 
 	//vector prechodu
 	typedef std::vector<Transition> TransitionVector;
+	typedef std::set<Transition> TransitionSet;
+	typedef std::pair<TransitionSet, TransitionSet> TransitionSetCouple;
+	typedef std::vector<TransitionSetCouple> TransitionSetCoupleVector;
+	typedef std::vector<TransitionSetCoupleVector> TransitionSetCouple2DVector;
 
 	//bitmap
 	typedef std::vector<bool> Bitmap;
@@ -52,6 +56,9 @@ namespace ExplicitTreeUpwardCongruence{
 	typedef std::set<StateSet> SetOfStateSet;
 
 
+	typedef std::pair<SymbolType, size_t> RankedSymbol;
+	typedef std::set<RankedSymbol> RankedAlphabet;
+
 
 	class ExplicitUpwardCongruence; 
 	class CongruenceBase;
@@ -62,7 +69,24 @@ namespace ExplicitTreeUpwardCongruence{
 using namespace VATA;
 using namespace ExplicitTreeUpwardCongruence;
 
-namespace ExplicitTreeUpwardCongruence{ 
+namespace ExplicitTreeUpwardCongruence{
+	
+	template <typename type> bool isMember(type item, std::set<type> set)
+	{
+		return set.find(item) != set.end();
+	}
+
+	template <typename type>  std::set<type> intersection(std::set<type> left, std::set<type> right)
+	{
+		std::set<type> intersect;
+		set_intersection(	left.begin(),
+							left.end(),
+							right.begin(),
+							right.end(),
+							std::inserter(intersect, intersect.begin())
+						);
+		return intersect;
+	}
 
 	class ExplicitUpwardCongruence{
 		
@@ -290,6 +314,22 @@ namespace ExplicitTreeUpwardCongruence{
 			);
 
 			bool check();
+
+			RankedAlphabet getRankedAlphabet();
+			StateSetCoupleSet getLeafCouples2(const RankedAlphabet &alphabet);
+			StateSet getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton);
+			StateSetCouple selectActual(StateSetCoupleSet& todo);
+			bool isCoupleFinalStateEquivalent(StateSetCouple couple);
+			StateSetCoupleSet getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet done);
+			TransitionSet getValidTransitionsAtPos(
+				SymbolType symbol,
+				StateSet actual, 
+				const ExplicitTreeAutCore& automaton,
+				size_t position);
+			StateSetCoupleSet calculatePost(
+				TransitionSetCoupleVector &actualTransitions,
+				TransitionSetCouple2DVector &doneTransitions,
+				size_t rank);
 
 		private:
 			bool inClosure(

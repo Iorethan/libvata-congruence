@@ -163,6 +163,16 @@ public:   // methods
 		const StateTuple&        children) const;
 
 
+
+	static bool CheckEquivalence(
+		const BDDBottomUpTreeAut&                 smaller,
+		const BDDBottomUpTreeAut&                 bigger,
+		const VATA::InclParam&                 params)
+	{
+		assert(false);
+		return false;
+	}
+
 	/**
 	 * @brief  Checks inclusion using default parameters
 	 *

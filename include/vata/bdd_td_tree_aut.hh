@@ -206,6 +206,15 @@ public:   // public methods
 		throw NotImplementedException(__func__);
 	}
 
+	static bool CheckEquivalence(
+		const BDDTopDownTreeAut&                 smaller,
+		const BDDTopDownTreeAut&                 bigger,
+		const VATA::InclParam&                 params)
+	{
+		assert(false);
+		return false;
+	}
+
 
 	static BDDTopDownTreeAut Union(
 		const BDDTopDownTreeAut&      lhs,

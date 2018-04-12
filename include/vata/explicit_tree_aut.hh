@@ -798,6 +798,26 @@ public:   // methods
 	 * @returns  @p true if the language of @p smaller is a subset of the language
 	 *           of @p bigger, @p false otherwise
 	 */
+	static bool CheckEquivalence(
+		const ExplicitTreeAut&                 smaller,
+		const ExplicitTreeAut&                 bigger,
+		const VATA::InclParam&                 params);
+
+
+	/**
+	 * @brief  Dispatcher for calling correct inclusion checking function
+	 *
+	 * This function is a dispatcher that calls a proper inclusion checking
+	 * function between @p smaller and @p bigger according to the parameters in @p
+	 * params.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 * @param[in]  params   Parameters for the inclusion
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
 	static bool CheckInclusion(
 		const ExplicitTreeAut&                 smaller,
 		const ExplicitTreeAut&                 bigger,

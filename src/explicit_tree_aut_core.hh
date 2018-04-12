@@ -1112,6 +1112,11 @@ public:   // methods
 		const ExplicitTreeAutCore&          bigger,
 		const VATA::InclParam&              params);
 
+	static bool CheckEquivalence(
+		const ExplicitTreeAutCore&          smaller,
+		const ExplicitTreeAutCore&          bigger,
+		const VATA::InclParam&              params);
+
 
 	template <
 		class Rel>

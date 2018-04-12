@@ -24,6 +24,7 @@ using VATA::Util::Convert;
 using VATA::AutBase;
 using VATA::InclParam;
 using VATA::SimParam;
+using VATA::ExplicitTreeAut;
 
 using std::chrono::high_resolution_clock;
 using TimePoint = std::chrono::time_point<high_resolution_clock>;
@@ -300,7 +301,7 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	else { throw optErrorEx; }
 
 	// TODO: change
-	assert(false);
-	return Automaton::CheckInclusion(smaller, bigger, ip);
+	// assert(false);
+	return Automaton::CheckEquivalence(smaller, bigger, ip);
 }
 #endif

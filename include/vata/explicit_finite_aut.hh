@@ -263,6 +263,16 @@ public: // public methods
 		throw NotImplementedException(__func__);
 	}
 
+	static bool CheckEquivalence(
+		const ExplicitFiniteAut&                 smaller,
+		const ExplicitFiniteAut&                 bigger,
+		const VATA::InclParam&                 params)
+	{
+		assert(false);
+		return false;
+	}
+
+
 	AutBase::StateDiscontBinaryRelation ComputeSimulation(
 		const SimParam&            params) const;
 };

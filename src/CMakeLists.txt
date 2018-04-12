@@ -91,6 +91,7 @@ add_library(libvata STATIC
 	explicit_tree_congr_inclusion.cc
 	explicit_tree_congr_equivalence.cc
 	explicit_tree_congr_base.cc
+	explicit_tree_equiv.cc
 )
 
 set_target_properties(libvata PROPERTIES
