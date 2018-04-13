@@ -59,6 +59,9 @@ namespace ExplicitTreeUpwardCongruence{
 	typedef std::pair<SymbolType, size_t> RankedSymbol;
 	typedef std::set<RankedSymbol> RankedAlphabet;
 
+	typedef std::vector<size_t> PostVariant;
+	typedef std::vector<PostVariant> PostVariantVector;
+
 
 	class ExplicitUpwardCongruence; 
 	class CongruenceBase;
@@ -330,6 +333,8 @@ namespace ExplicitTreeUpwardCongruence{
 				TransitionSetCoupleVector &actualTransitions,
 				TransitionSetCouple2DVector &doneTransitions,
 				size_t rank);
+			void generatePostVariants(PostVariantVector &result, size_t n, size_t k);
+			StateSetCouple statesFromTransitions(TransitionSet &sml, TransitionSet &bgr);
 
 		private:
 			bool inClosure(
