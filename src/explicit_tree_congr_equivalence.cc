@@ -17,10 +17,15 @@ using namespace VATA;
 using namespace ExplicitTreeUpwardCongruence;
 
 CongruenceEquivalence::CongruenceEquivalence(
-	const ExplicitTreeAutCore&        smaller,
-	const ExplicitTreeAutCore&        bigger)
-	: CongruenceBase(smaller, bigger)
-	{}
+	const ExplicitTreeAutCore&        _smaller,
+	const ExplicitTreeAutCore&        _bigger)
+	: CongruenceBase(_smaller, _bigger)
+	{
+		smaller = smaller.RemoveUnreachableStates();
+		smaller = smaller.RemoveUselessStates();
+		bigger = bigger.RemoveUnreachableStates();
+		bigger = bigger.RemoveUselessStates();
+	}
 
 RankedAlphabet CongruenceEquivalence::getRankedAlphabet()
 {
@@ -74,6 +79,11 @@ StateSetCouple CongruenceEquivalence::selectActual(StateSetCoupleSet& todo)
 
 bool CongruenceEquivalence::isCoupleFinalStateEquivalent(StateSetCouple couple)
 {
+	if((couple.first.size() == 0) != (couple.second.size() == 0))
+	{
+		return false;
+	}
+
 	FinalStateSet s = smaller.GetFinalStates();
 	FinalStateSet b = bigger.GetFinalStates();
 	StateSet ss(s.begin(), s.end());
@@ -206,15 +216,18 @@ bool CongruenceEquivalence::check()
 	StateSetCoupleSet done, todo = getLeafCouples2(rankedAlphabet);
 	StateSetCouple actual;
 	
+	for(auto couple : todo)
+	{
+		if(!isCoupleFinalStateEquivalent(couple))
+		{
+			return false;
+		}
+	}
+
 	while(!todo.empty())
 	{
 		actual = selectActual(todo);
 		done.insert(actual);
-
-		if(!isCoupleFinalStateEquivalent(actual))
-		{
-			return false;
-		}
 
 		for(auto symbol : rankedAlphabet)
 		{
@@ -223,6 +236,11 @@ bool CongruenceEquivalence::check()
 				StateSetCoupleSet post = getPost(symbol, actual, done);
 				for(auto next : post)
 				{
+					if(!isCoupleFinalStateEquivalent(next))
+					{
+						return false;
+					}
+					
 					if(!isMember(next, done))
 					{
 						todo.insert(next);
