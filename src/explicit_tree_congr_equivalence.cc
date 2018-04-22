@@ -79,17 +79,26 @@ StateSetCouple CongruenceEquivalence::selectActual(StateSetCoupleSet& todo)
 
 bool CongruenceEquivalence::isCoupleFinalStateEquivalent(StateSetCouple couple)
 {
-	if((couple.first.size() == 0) != (couple.second.size() == 0))
+	if(couple.first.empty() != couple.second.empty())
 	{
 		return false;
 	}
 
-	FinalStateSet s = smaller.GetFinalStates();
-	FinalStateSet b = bigger.GetFinalStates();
-	StateSet ss(s.begin(), s.end());
-	StateSet sb(b.begin(), b.end());
-	return intersection(couple.first, ss).empty() ==
-		intersection(couple.second, sb).empty();
+	StateSet set_s, set_b;
+	set_intersection
+	(
+		couple.first.begin(), couple.first.end(),
+		smaller.GetFinalStates().begin(), smaller.GetFinalStates().end(),
+		std::inserter(set_s, set_s.begin())
+	);
+	
+	set_intersection
+	(
+		couple.second.begin(), couple.second.end(),
+		bigger.GetFinalStates().begin(), bigger.GetFinalStates().end(),
+		std::inserter(set_b, set_b.begin())
+	);
+	return set_s.empty() == set_b.empty();
 }
 
 StateSetCoupleSet CongruenceEquivalence::getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet &done)
@@ -257,7 +266,6 @@ bool CongruenceEquivalence::check()
 {
 	RankedAlphabet rankedAlphabet = getRankedAlphabet();
 	StateSetCoupleSet done, todo = getLeafCouples2(rankedAlphabet);
-	StateSetCoupleSet congruence = todo;
 	StateSetCouple actual;
 	
 	for(auto couple : todo)
@@ -268,37 +276,39 @@ bool CongruenceEquivalence::check()
 		}
 	}
 
+	for(auto symbol : rankedAlphabet)
+	{
+		if(symbol.second == 0)
+		{
+			rankedAlphabet.erase(symbol);
+		}
+	}
 
+	// StateSetCoupleSet congruence = todo;
 	while(!todo.empty())
 	{
-		StateSetCoupleSet congruence2 = set_union(todo, done);
+		StateSetCoupleSet congruence = set_union(todo, done);
 		actual = selectActual(todo);
+		todo.erase(actual);
 		done.insert(actual);
 
 		for(auto symbol : rankedAlphabet)
 		{
-			if(symbol.second != 0)
+			StateSetCoupleSet post = getPost(symbol, actual, done);
+			for(auto next : post)
 			{
-				StateSetCoupleSet post = getPost(symbol, actual, done);
-				for(auto next : post)
+				if(!isCoupleFinalStateEquivalent(next))
 				{
-					if(!isCoupleFinalStateEquivalent(next))
-					{
-						return false;
-					}
-					
-					if(!isCongruenceClosureMember(next, congruence2))
-					{
-						congruence.insert(next);
-						todo.insert(next);
-					}
+					return false;
+				}
+				
+				if(!isCongruenceClosureMember(next, congruence))
+				{
+					// congruence.insert(next);
+					todo.insert(next);
 				}
 			}
 		}
-		todo.erase(actual);
 	}
 	return true;
-
-
-
 }
