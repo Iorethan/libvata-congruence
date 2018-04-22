@@ -119,9 +119,9 @@ StateSetCoupleSet CongruenceEquivalence::calculatePost(
 	generatePostVariants(variants, rank - 1, doneTransitions.size());
 	for(size_t pos = 0; pos < rank; pos++)
 	{
-		int correction = 0;
 		for(auto variant : variants)
 		{
+			int correction = 0;
 			TransitionSet sml = actualTransitions[pos].first;
 			TransitionSet bgr = actualTransitions[pos].second;
 			for(size_t i = 0; i < rank; i++)
@@ -137,10 +137,7 @@ StateSetCoupleSet CongruenceEquivalence::calculatePost(
 				}
 			}
 			StateSetCouple tmp = statesFromTransitions(sml, bgr);
-			if(tmp.first.size() != 0 || tmp.second.size() != 0)
-			{
-				post.insert(tmp);
-			}
+			post.insert(tmp);
 		}
 	}
 	return post;
@@ -213,6 +210,7 @@ bool CongruenceEquivalence::check()
 	{
 		actual = selectActual(todo);
 		done.insert(actual);
+
 		if(!isCoupleFinalStateEquivalent(actual))
 		{
 			return false;
@@ -225,14 +223,13 @@ bool CongruenceEquivalence::check()
 				StateSetCoupleSet post = getPost(symbol, actual, done);
 				for(auto next : post)
 				{
-					if(!isMember(next, todo))
+					if(!isMember(next, done))
 					{
 						todo.insert(next);
 					}
 				}
 			}
 		}
-
 		todo.erase(actual);
 	}
 	return true;
