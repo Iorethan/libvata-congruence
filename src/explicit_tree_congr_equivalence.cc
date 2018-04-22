@@ -92,7 +92,7 @@ bool CongruenceEquivalence::isCoupleFinalStateEquivalent(StateSetCouple couple)
 		intersection(couple.second, sb).empty();
 }
 
-StateSetCoupleSet CongruenceEquivalence::getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet done)
+StateSetCoupleSet CongruenceEquivalence::getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet &done)
 {
 	TransitionSetCoupleVector actualTransitions;
 	for(size_t pos = 0; pos < symbol.second; pos++)
@@ -210,10 +210,54 @@ TransitionSet CongruenceEquivalence::getValidTransitionsAtPos(SymbolType symbol,
 	return set;
 }
 
+bool CongruenceEquivalence::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
+{
+	if(isMember(item, set))
+	{
+		return true;
+	}
+
+	StateSetCouple aux;
+	bool changed = true;
+	std::vector<bool> used_s(set.size(), false); 
+	std::vector<bool> used_b(set.size(), false); 
+	while(changed)
+	{
+		int i = 0;
+		changed = false;
+		for(auto set_item : set)
+		{
+			if(!used_s[i] && isExpandableBy(item.first, aux.second, set_item))
+			{
+				changed = true;
+				used_s[i] = true;
+				item.first = set_union(item.first, set_item.first);
+				aux.second = set_union(aux.second, set_item.second);
+			}
+			if(!used_b[i] && isExpandableBy(aux.first, item.second, set_item))
+			{
+				changed = true;
+				used_b[i] = true;
+				aux.first = set_union(aux.first, set_item.first);
+				item.second = set_union(item.second, set_item.second);
+			}
+			i++;
+		}
+	}
+	return item.first == aux.first && item.second == aux.second;
+}
+
+bool CongruenceEquivalence::isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item)
+{
+	return intersection(first, item.first).size() != 0 ||
+		intersection(second, item.second).size() != 0;
+}
+
 bool CongruenceEquivalence::check()
 {
 	RankedAlphabet rankedAlphabet = getRankedAlphabet();
 	StateSetCoupleSet done, todo = getLeafCouples2(rankedAlphabet);
+	StateSetCoupleSet congruence = todo;
 	StateSetCouple actual;
 	
 	for(auto couple : todo)
@@ -224,8 +268,10 @@ bool CongruenceEquivalence::check()
 		}
 	}
 
+
 	while(!todo.empty())
 	{
+		StateSetCoupleSet congruence2 = set_union(todo, done);
 		actual = selectActual(todo);
 		done.insert(actual);
 
@@ -241,8 +287,9 @@ bool CongruenceEquivalence::check()
 						return false;
 					}
 					
-					if(!isMember(next, done))
+					if(!isCongruenceClosureMember(next, congruence2))
 					{
+						congruence.insert(next);
 						todo.insert(next);
 					}
 				}

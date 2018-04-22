@@ -91,6 +91,18 @@ namespace ExplicitTreeUpwardCongruence{
 		return intersect;
 	}
 
+	template <typename type>  std::set<type> set_union(std::set<type> left, std::set<type> right)
+	{
+		std::set<type> intersect;
+		set_union(	left.begin(),
+							left.end(),
+							right.begin(),
+							right.end(),
+							std::inserter(intersect, intersect.begin())
+						);
+		return intersect;
+	}
+
 	class ExplicitUpwardCongruence{
 		
 		public:
@@ -323,7 +335,7 @@ namespace ExplicitTreeUpwardCongruence{
 			StateSet getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton);
 			StateSetCouple selectActual(StateSetCoupleSet& todo);
 			bool isCoupleFinalStateEquivalent(StateSetCouple couple);
-			StateSetCoupleSet getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet done);
+			StateSetCoupleSet getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet &done);
 			TransitionSet getValidTransitionsAtPos(
 				SymbolType symbol,
 				StateSet actual, 
@@ -335,6 +347,8 @@ namespace ExplicitTreeUpwardCongruence{
 				size_t rank);
 			void generatePostVariants(PostVariantVector &result, size_t n, size_t k);
 			StateSetCouple statesFromTransitions(TransitionSet &sml, TransitionSet &bgr);
+			bool isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set);
+			bool isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item);
 
 		private:
 			bool inClosure(
