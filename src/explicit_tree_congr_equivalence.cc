@@ -136,8 +136,7 @@ StateSetCoupleSet CongruenceEquivalence::calculatePost(
 	size_t rank)
 {
 	StateSetCoupleSet post;
-	PostVariantVector variants;
-	generatePostVariants(variants, rank - 1, doneTransitions.size());
+	PostVariantVector variants = generatePostVariants(rank - 1, doneTransitions.size());
 	for(size_t pos = 0; pos < rank; pos++)
 	{
 		for(auto variant : variants)
@@ -182,30 +181,61 @@ StateSetCouple CongruenceEquivalence::statesFromTransitions(TransitionSet &sml, 
 	return tmp;
 }
 
-void CongruenceEquivalence::generatePostVariants(PostVariantVector &result, size_t n, size_t k)
+PostVariantVector CongruenceEquivalence::generatePostVariants(size_t n, size_t k)
 {
-	PostVariantVector current, prev;
-	PostVariant subresult;
-	prev.push_back(subresult);
-	for(size_t i = 0; i < n; i++)
+	static std::map<std::tuple<size_t, size_t>, PostVariantVector> variant_cache;
+	std::map<std::tuple<size_t, size_t>, PostVariantVector>::iterator iter;
+
+	if((iter = variant_cache.find(std::make_tuple(n, k))) != variant_cache.end())
 	{
-		for(size_t j = 0; j < k; j++)
+		return iter->second;
+	}
+	else
+	{	
+		std::tuple<size_t, size_t> tuple(n, k);
+		PostVariantVector current, prev;
+		PostVariant subresult;
+		prev.push_back(subresult);
+		for(size_t i = 0; i < n; i++)
 		{
-			for(auto item : prev)
+			for(size_t j = 0; j < k; j++)
 			{
-				std::vector<size_t> tmp = item;
-				tmp.push_back(j);
-				current.push_back(tmp);
+				for(auto item : prev)
+				{
+					std::vector<size_t> tmp = item;
+					tmp.push_back(j);
+					current.push_back(tmp);
+				}
 			}
+			prev = current;
+			current.clear();
 		}
-		prev = current;
-		current.clear();
+		variant_cache.emplace(std::pair<std::tuple<size_t, size_t>, PostVariantVector>(tuple, prev));
+		return prev;
 	}
-	for(auto item : prev)
-	{
-		result.push_back(item);
-	}
-	return;
+
+	// PostVariantVector current, prev;
+	// PostVariant subresult;
+	// prev.push_back(subresult);
+	// for(size_t i = 0; i < n; i++)
+	// {
+	// 	for(size_t j = 0; j < k; j++)
+	// 	{
+	// 		for(auto item : prev)
+	// 		{
+	// 			std::vector<size_t> tmp = item;
+	// 			tmp.push_back(j);
+	// 			current.push_back(tmp);
+	// 		}
+	// 	}
+	// 	prev = current;
+	// 	current.clear();
+	// }
+	// for(auto item : prev)
+	// {
+	// 	result.push_back(item);
+	// }
+	// return;
 }
 
 TransitionSet CongruenceEquivalence::getValidTransitionsAtPos(SymbolType symbol, StateSet actual, const ExplicitTreeAutCore& automaton, size_t position, int index)
@@ -231,16 +261,6 @@ TransitionSet CongruenceEquivalence::getValidTransitionsAtPos(SymbolType symbol,
 		transition_cache.emplace(std::pair<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet>(tuple, set));
 		return set;
 	}
-
-	// TransitionSet set;
-	// for(auto transition : automaton)
-	// {
-	// 	if(transition.GetSymbol() == symbol && isMember(transition.GetChildren()[position], actual))
-	// 	{
-	// 		set.insert(transition);
-	// 	}
-	// }
-	// return set;
 }
 
 bool CongruenceEquivalence::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)

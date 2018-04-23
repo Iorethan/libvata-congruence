@@ -346,7 +346,7 @@ namespace ExplicitTreeUpwardCongruence{
 				TransitionSetCoupleVector &actualTransitions,
 				TransitionSetCouple2DVector &doneTransitions,
 				size_t rank);
-			void generatePostVariants(PostVariantVector &result, size_t n, size_t k);
+			PostVariantVector generatePostVariants(size_t n, size_t k);
 			StateSetCouple statesFromTransitions(TransitionSet &sml, TransitionSet &bgr);
 			bool isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set);
 			bool isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item);
