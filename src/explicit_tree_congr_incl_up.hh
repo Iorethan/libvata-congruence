@@ -340,7 +340,8 @@ namespace ExplicitTreeUpwardCongruence{
 				SymbolType symbol,
 				StateSet actual, 
 				const ExplicitTreeAutCore& automaton,
-				size_t position);
+				size_t position,
+				int index);
 			StateSetCoupleSet calculatePost(
 				TransitionSetCoupleVector &actualTransitions,
 				TransitionSetCouple2DVector &doneTransitions,

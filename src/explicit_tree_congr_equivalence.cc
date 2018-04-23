@@ -11,6 +11,8 @@
 //
 
 #include <iostream>
+#include <map>
+#include <tuple>
 #include "explicit_tree_congr_incl_up.hh"
 
 using namespace VATA;
@@ -107,8 +109,8 @@ StateSetCoupleSet CongruenceEquivalence::getPost(RankedSymbol symbol, StateSetCo
 	for(size_t pos = 0; pos < symbol.second; pos++)
 	{
 		TransitionSetCouple tmp;
-		tmp.first = getValidTransitionsAtPos(symbol.first, actual.first, smaller, pos);
-		tmp.second = getValidTransitionsAtPos(symbol.first, actual.second, bigger, pos);
+		tmp.first = getValidTransitionsAtPos(symbol.first, actual.first, smaller, pos, 0);
+		tmp.second = getValidTransitionsAtPos(symbol.first, actual.second, bigger, pos, 1);
 		actualTransitions.push_back(tmp);
 	}
 
@@ -119,8 +121,8 @@ StateSetCoupleSet CongruenceEquivalence::getPost(RankedSymbol symbol, StateSetCo
 		for(size_t pos = 0; pos < symbol.second; pos++)
 		{
 			TransitionSetCouple tmp;
-			tmp.first = getValidTransitionsAtPos(symbol.first, couple.first, smaller, pos);
-			tmp.second = getValidTransitionsAtPos(symbol.first, couple.second, bigger, pos);
+			tmp.first = getValidTransitionsAtPos(symbol.first, couple.first, smaller, pos, 0);
+			tmp.second = getValidTransitionsAtPos(symbol.first, couple.second, bigger, pos, 1);
 			doneTransitions[i].push_back(tmp);
 		}
 		i++;
@@ -206,17 +208,39 @@ void CongruenceEquivalence::generatePostVariants(PostVariantVector &result, size
 	return;
 }
 
-TransitionSet CongruenceEquivalence::getValidTransitionsAtPos(SymbolType symbol, StateSet actual, const ExplicitTreeAutCore& automaton, size_t position)
+TransitionSet CongruenceEquivalence::getValidTransitionsAtPos(SymbolType symbol, StateSet actual, const ExplicitTreeAutCore& automaton, size_t position, int index)
 {
-	TransitionSet set;
-	for(auto transition : automaton)
+	static std::map<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet> transition_cache;
+	std::map<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet>::iterator iter;	
+
+	if((iter = transition_cache.find(std::make_tuple(symbol, actual, position, index))) != transition_cache.end())
 	{
-		if(transition.GetSymbol() == symbol && isMember(transition.GetChildren()[position], actual))
-		{
-			set.insert(transition);
-		}
+		return iter->second;
 	}
-	return set;
+	else
+	{	
+		std::tuple<SymbolType, StateSet, size_t, int> tuple(symbol, actual, position, index);
+		TransitionSet set;
+		for(auto transition : automaton)
+		{
+			if(transition.GetSymbol() == symbol && isMember(transition.GetChildren()[position], actual))
+			{
+				set.insert(transition);
+			}
+		}
+		transition_cache.emplace(std::pair<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet>(tuple, set));
+		return set;
+	}
+
+	// TransitionSet set;
+	// for(auto transition : automaton)
+	// {
+	// 	if(transition.GetSymbol() == symbol && isMember(transition.GetChildren()[position], actual))
+	// 	{
+	// 		set.insert(transition);
+	// 	}
+	// }
+	// return set;
 }
 
 bool CongruenceEquivalence::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
@@ -258,8 +282,21 @@ bool CongruenceEquivalence::isCongruenceClosureMember(StateSetCouple item, State
 
 bool CongruenceEquivalence::isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item)
 {
-	return intersection(first, item.first).size() != 0 ||
-		intersection(second, item.second).size() != 0;
+	static std::map<std::tuple<StateSet, StateSet, StateSetCouple>, bool> cache;
+	std::map<std::tuple<StateSet, StateSet, StateSetCouple>, bool>::iterator iter;
+	if((iter = cache.find(std::make_tuple(first, second, item))) != cache.end())
+	{
+		return iter->second;
+	}
+	else
+	{	
+		std::tuple<StateSet, StateSet, StateSetCouple> tuple(first, second, item);
+		bool result = intersection(first, item.first).size() != 0 || intersection(second, item.second).size() != 0;
+		cache.insert(std::pair<std::tuple<StateSet, StateSet, StateSetCouple>, bool>(tuple, result));
+		return result;
+	}
+	// return intersection(first, item.first).size() != 0 ||
+	// 	intersection(second, item.second).size() != 0;
 }
 
 bool CongruenceEquivalence::check()
@@ -284,11 +321,19 @@ bool CongruenceEquivalence::check()
 		}
 	}
 
-	// StateSetCoupleSet congruence = todo;
+	// StateSetCoupleSet congruence1 = todo;
 	while(!todo.empty())
 	{
 		StateSetCoupleSet congruence = set_union(todo, done);
 		actual = selectActual(todo);
+		
+		if(!isCongruenceClosureMember(actual, congruence))
+		{
+			todo.erase(actual);
+			done.insert(actual);
+			continue;
+		}
+
 		todo.erase(actual);
 		done.insert(actual);
 
@@ -304,7 +349,7 @@ bool CongruenceEquivalence::check()
 				
 				if(!isCongruenceClosureMember(next, congruence))
 				{
-					// congruence.insert(next);
+					// congruence1.insert(next);
 					todo.insert(next);
 				}
 			}
