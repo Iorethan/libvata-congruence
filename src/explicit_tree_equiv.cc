@@ -57,7 +57,7 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 			// assert(static_cast<typename AutBase::StateType>(-1) == states);
 
 			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(smaller, bigger);
-			return equivalence.check(false, false);
+			return equivalence.check(false, false, false);
 		}
 
 		case EqParam::CONGRUENCE_UP:
@@ -65,7 +65,7 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 			// assert(static_cast<typename AutBase::StateType>(-1) == states);
 
 			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(smaller, bigger);
-			return equivalence.check(false, true);
+			return equivalence.check(false, true, false);
 		}
 
 		case EqParam::BISIMULATION_UP_CACHED:
@@ -73,7 +73,7 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 			// assert(static_cast<typename AutBase::StateType>(-1) == states);
 
 			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(smaller, bigger);
-			return equivalence.check(true, false);
+			return equivalence.check(true, false, false);
 		}
 
 		case EqParam::CONGRUENCE_UP_CACHED:
@@ -81,7 +81,15 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 			// assert(static_cast<typename AutBase::StateType>(-1) == states);
 
 			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(smaller, bigger);
-			return equivalence.check(true, true);
+			return equivalence.check(true, true, false);
+		}
+
+		case EqParam::CONGRUENCE_UP_CACHED_LAX:
+		{
+			// assert(static_cast<typename AutBase::StateType>(-1) == states);
+
+			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(smaller, bigger);
+			return equivalence.check(true, true, true);
 		}
 
 		default:

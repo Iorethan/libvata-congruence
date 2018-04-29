@@ -280,6 +280,7 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	Options options = args.options;
 	options.insert(std::make_pair("alg", "antichains"));
 	options.insert(std::make_pair("congr", "no"));
+	options.insert(std::make_pair("cache", "no"));
 	options.insert(std::make_pair("dir", "up"));
 
 	// parameters for equivalence
@@ -298,9 +299,9 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	{
 		ip.SetAlgorithm(EqParam::e_algorithm::antichains);
 	}
-	else if (options["alg"] == "bisim")
+	else if (options["alg"] == "bisimulation")
 	{
-		ip.SetAlgorithm(EqParam::e_algorithm::antichains);
+		ip.SetAlgorithm(EqParam::e_algorithm::bisimulation);
 	}
 
 	if (options["congr"] == "no")
@@ -310,6 +311,24 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	else if (options["congr"] == "yes")
 	{
 		ip.SetUseCongr(true);
+	}
+
+	if (options["cache"] == "no")
+	{
+		ip.SetUseCache(false);
+	}
+	else if (options["cache"] == "yes")
+	{
+		ip.SetUseCache(true);
+	}
+
+	if (options["lax"] == "no")
+	{
+		ip.SetBeLax(false);
+	}
+	else if (options["lax"] == "yes")
+	{
+		ip.SetBeLax(true);
 	}
 
 	if (options["dir"] == "up")

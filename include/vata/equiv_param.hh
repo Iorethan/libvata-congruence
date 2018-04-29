@@ -49,6 +49,8 @@ namespace VATA
 		static const unsigned FLAG_MASK_DIRECTION              = 1 << 2;
 		/// 0 ... no caching (default),		1 ... use caching
 		static const unsigned FLAG_MASK_CACHE                  = 1 << 3;
+		/// 0 ... be strict (default),		1 ... be lax
+		static const unsigned FLAG_MASK_LAX                    = 1 << 4;
 
 	public:  // constants
 		static const unsigned ANTICHAINS_UP = 0
@@ -88,6 +90,13 @@ namespace VATA
 			| FLAG_MASK_ALGORITHM
             | FLAG_MASK_CONGRUENCE
 			| FLAG_MASK_CACHE
+			;
+			
+		static const unsigned CONGRUENCE_UP_CACHED_LAX = 0
+			| FLAG_MASK_ALGORITHM
+            | FLAG_MASK_CONGRUENCE
+			| FLAG_MASK_CACHE
+			| FLAG_MASK_LAX
 			;
 
 	private: // data members
@@ -179,6 +188,23 @@ namespace VATA
 		bool GetUseCache() const
 		{
 			return flags_ & FLAG_MASK_CACHE;
+		}
+
+		void SetBeLax(bool useLax)
+		{
+			if (useLax)
+			{
+				flags_ |=  FLAG_MASK_LAX;
+			}
+			else
+			{
+				flags_ &= ~FLAG_MASK_LAX;
+			}
+		}
+
+		bool GetBeLax() const
+		{
+			return flags_ & FLAG_MASK_LAX;
 		}
 
 		TOptions GetOptions() const

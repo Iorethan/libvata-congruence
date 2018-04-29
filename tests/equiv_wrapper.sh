@@ -45,11 +45,27 @@ ulimit -s 1000000
 
 case "${OPERATION}" in
   double-incl)
-    ${VATA} -r expl -t equiv -o order=breadth "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl -t equiv "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  congrup)
-    ${VATA} -r expl -t equiv -o order=depth "${FILE_LHS}" "${FILE_RHS}"
+  bisim-up)
+    ${VATA} -r expl -t equiv -o "alg=bisimulation" "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  bisim-up-cached)
+    ${VATA} -r expl -t equiv -o "alg=bisimulation,cache=yes" "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  congr-up)
+    ${VATA} -r expl -t equiv -o "alg=bisimulation,congr=yes" "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  congr-up-cached)
+    ${VATA} -r expl -t equiv -o "alg=bisimulation,congr=yes,cache=yes" "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  congr-up-cached-lax)
+    ${VATA} -r expl -t equiv -o "alg=bisimulation,congr=yes,cache=yes,lax=yes" "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   *) die "Invalid option ${OPERATION}"
@@ -57,4 +73,3 @@ case "${OPERATION}" in
 esac
 
 exit ${RETVAL}
-

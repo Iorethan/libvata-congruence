@@ -15,6 +15,9 @@
 #include "explicit_tree_aut_core.hh"
 #include <vata/explicit_tree_aut.hh>
 
+// #include <map>
+// #include <tuple>
+
 namespace ExplicitTreeUpwardBisimulation{ 
 	using namespace VATA;
 
@@ -94,39 +97,72 @@ namespace ExplicitTreeUpwardBisimulation{
 		return intersect;
 	}
 
-	class BisimulationBase{			
+	class BisimulationBase{	
 		protected:
 			ExplicitTreeAutCore smaller;
 			ExplicitTreeAutCore bigger;
-			long stateCounter;
+
+			StateSetCoupleSet post;
+			
+			std::map<std::tuple<size_t, size_t>, PostVariantVector> variant_cache;
+			std::map<std::tuple<size_t, size_t>, PostVariantVector>::iterator variant_iter;
+			std::map<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet> transition_cache;
+			std::map<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet>::iterator transition_iter;
 
 		public:
 			BisimulationBase(
 				const ExplicitTreeAutCore&        smaller,
 				const ExplicitTreeAutCore&        bigger
 			);
-
-			void setSmaller(
-				ExplicitTreeAutCore smaller
-			);
-
-			void setBigger(
-				ExplicitTreeAutCore bigger
-			);
-
-			ExplicitTreeAutCore getSmaller();
-
-			ExplicitTreeAutCore getBigger();
 			
-			bool check(
+			virtual ~BisimulationBase() {}
+			
+			virtual bool check(
 				const bool					useCache,
-				const bool					useCongruence
-			);
+				const bool					useCongruence,
+				const bool					beLax
+			) = 0;
+
+			RankedAlphabet getRankedAlphabet();
+			static void pruneRankedAlphabet(RankedAlphabet &alphabet);
+
+			StateSetCoupleSet getLeafCouples(const RankedAlphabet &alphabet);
+			static StateSet getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton);
+
+			void getPost(
+				RankedSymbol symbol,
+				StateSetCouple actual,
+				StateSetCoupleSet &done);
+			void getPostCached(
+				RankedSymbol symbol,
+				StateSetCouple actual,
+				StateSetCoupleSet &done);
+
+			void calculatePost(
+				TransitionSetCoupleVector &actualTransitions,
+				TransitionSetCouple2DVector &doneTransitions,
+				size_t rank);
+			static StateSet statesFromTransitions(TransitionSet &transitions);
+			void generatePostVariants(size_t n, size_t k);
+
+			TransitionSet getValidTransitionsAtPos(
+				SymbolType symbol,
+				StateSet actual, 
+				const ExplicitTreeAutCore& automaton,
+				size_t position);
+			void getValidTransitionsAtPosCached(
+				SymbolType symbol,
+				StateSet actual,
+				const ExplicitTreeAutCore& automaton,
+				size_t position,
+				int index);
 	};
 
 	//-----------------------------------------------------------------------------
 
 	class BisimulationEquivalence : public BisimulationBase {
+		private:
+			std::map<std::tuple<StateSet, StateSet, StateSetCouple>, bool> expandable_cache;
 
 		public:
 			BisimulationEquivalence(
@@ -136,40 +172,21 @@ namespace ExplicitTreeUpwardBisimulation{
 			
 			bool check(
 				const bool					useCache,
-				const bool					useCongruence
+				const bool					useCongruence,
+				const bool					beLax
 			);
 
-			RankedAlphabet getRankedAlphabet();
-
-			StateSetCoupleSet getLeafCouples(const RankedAlphabet &alphabet);
-
-			StateSet getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton);
+			bool areLeavesEquivalent(StateSetCoupleSet &todo);
+			bool isCoupleFinalStateEquivalent(StateSetCouple &couple);
 
 			StateSetCouple selectActual(StateSetCoupleSet& todo);
 
-			bool isCoupleFinalStateEquivalent(StateSetCouple couple);
-
-			StateSetCoupleSet getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet &done);
-
-			TransitionSet getValidTransitionsAtPos(
-				SymbolType symbol,
-				StateSet actual, 
-				const ExplicitTreeAutCore& automaton,
-				size_t position,
-				int index);
-
-			StateSetCoupleSet calculatePost(
-				TransitionSetCoupleVector &actualTransitions,
-				TransitionSetCouple2DVector &doneTransitions,
-				size_t rank);
-
-			PostVariantVector generatePostVariants(size_t n, size_t k);
-
-			StateSetCouple statesFromTransitions(TransitionSet &sml, TransitionSet &bgr);
-
 			bool isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set);
+			bool isCongruenceClosureMemberCachedStrict(StateSetCouple item, StateSetCoupleSet &set);
+			bool isCongruenceClosureMemberCachedLax(StateSetCouple item, StateSetCoupleSet &set);
 
 			bool isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item);
+			bool isExpandableByCached(StateSet &first, StateSet &second, StateSetCouple &item);
 	};
 	
 }

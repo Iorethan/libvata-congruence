@@ -15,7 +15,11 @@ SCRIPTPATH=`dirname $SCRIPT`
 
 METHODS=( 
   "double-incl"
-  "congrup"
+  # "bisim-up"
+  # "bisim-up-cached"
+  # "congr-up"
+  "congr-up-cached"
+  "congr-up-cached-lax"
 )
 
 ################################# FUNCTIONS ##################################
