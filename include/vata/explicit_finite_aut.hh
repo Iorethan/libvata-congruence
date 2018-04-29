@@ -15,6 +15,7 @@
 #include <vata/aut_base.hh>
 
 #include <vata/incl_param.hh>
+#include <vata/equiv_param.hh>
 #include <vata/sim_param.hh>
 #include <vata/explicit_lts.hh>
 
@@ -266,7 +267,7 @@ public: // public methods
 	static bool CheckEquivalence(
 		const ExplicitFiniteAut&                 smaller,
 		const ExplicitFiniteAut&                 bigger,
-		const VATA::InclParam&                 params)
+		const VATA::EqParam&                 params)
 	{
 		assert(false);
 		return false;

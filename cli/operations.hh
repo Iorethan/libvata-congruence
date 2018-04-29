@@ -23,6 +23,7 @@
 using VATA::Util::Convert;
 using VATA::AutBase;
 using VATA::InclParam;
+using VATA::EqParam;
 using VATA::SimParam;
 using VATA::ExplicitTreeAut;
 
@@ -277,27 +278,49 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 {
 	// insert default values
 	Options options = args.options;
-	options.insert(std::make_pair("order", "depth"));
+	options.insert(std::make_pair("alg", "antichains"));
+	options.insert(std::make_pair("congr", "no"));
+	options.insert(std::make_pair("dir", "up"));
 
-	// parameters for inclusion
-	InclParam ip;
+	// parameters for equivalence
+	EqParam ip;
 
 	std::runtime_error optErrorEx("Invalid options for equivalence: " +
 			Convert::ToString(options));
 
 	startTime = high_resolution_clock::now();
 
-	ip.SetEquivalence(true);
-	ip.SetAlgorithm(InclParam::e_algorithm::congruences);
+	ip.SetAlgorithm(EqParam::e_algorithm::antichains);
+	ip.SetUseCongr(false);
+	ip.SetDirection(EqParam::e_direction::upward);
 
-	if (options["order"] == "depth")
+	if (options["alg"] == "antichains")
 	{
-		ip.SetSearchOrder(InclParam::e_search_order::depth);
+		ip.SetAlgorithm(EqParam::e_algorithm::antichains);
 	}
-	else if (options["order"] == "breadth")
+	else if (options["alg"] == "bisim")
 	{
-		ip.SetSearchOrder(InclParam::e_search_order::breadth);
+		ip.SetAlgorithm(EqParam::e_algorithm::antichains);
 	}
+
+	if (options["congr"] == "no")
+	{
+		ip.SetUseCongr(false);
+	}
+	else if (options["congr"] == "yes")
+	{
+		ip.SetUseCongr(true);
+	}
+
+	if (options["dir"] == "up")
+	{
+		ip.SetDirection(EqParam::e_direction::upward);
+	}
+	else if (options["dir"] == "down")
+	{
+		ip.SetDirection(EqParam::e_direction::downward);
+	}
+
 	else { throw optErrorEx; }
 
 	// TODO: change

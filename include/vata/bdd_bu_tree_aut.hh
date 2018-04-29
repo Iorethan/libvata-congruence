@@ -18,6 +18,7 @@
 #include <vata/symbolic.hh>
 #include <vata/notimpl_except.hh>
 #include <vata/incl_param.hh>
+#include <vata/equiv_param.hh>
 #include <vata/sim_param.hh>
 
 // utilities
@@ -167,7 +168,7 @@ public:   // methods
 	static bool CheckEquivalence(
 		const BDDBottomUpTreeAut&                 smaller,
 		const BDDBottomUpTreeAut&                 bigger,
-		const VATA::InclParam&                 params)
+		const VATA::EqParam&                 params)
 	{
 		assert(false);
 		return false;

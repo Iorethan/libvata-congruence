@@ -17,6 +17,7 @@
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/incl_param.hh>
+#include <vata/equiv_param.hh>
 #include <vata/reduce_param.hh>
 #include <vata/sim_param.hh>
 
@@ -801,7 +802,7 @@ public:   // methods
 	static bool CheckEquivalence(
 		const ExplicitTreeAut&                 smaller,
 		const ExplicitTreeAut&                 bigger,
-		const VATA::InclParam&                 params);
+		const VATA::EqParam&                 params);
 
 
 	/**

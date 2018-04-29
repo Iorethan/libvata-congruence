@@ -719,7 +719,7 @@ AutBase::StateDiscontBinaryRelation ExplicitTreeAut::ComputeSimulation(
 bool ExplicitTreeAut::CheckEquivalence(
 	const ExplicitTreeAut&                 smaller,
 	const ExplicitTreeAut&                 bigger,
-	const VATA::InclParam&                 params)
+	const VATA::EqParam&                 params)
 {
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);

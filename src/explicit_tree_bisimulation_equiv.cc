@@ -1,27 +1,26 @@
 /*****************************************************************************
  *  VATA Tree Automata Library
  *
- *  Copyright (c) 2017  Petr Zufan <xzufan00@fit.vutbr.cz>
+ *  Ondrej Vales <xvales03@fit.vutbr.cz>
  *
  *  Description:
- *    Upward inclusion for explicitly represented tree automata.
+ *    Equivalence using upward bisimulation up to congruence for explicitly
+ *    represented tree automata.
  *
  *****************************************************************************/
-//makeStep pro kazdy symbol zvlast.
-//
 
 #include <iostream>
 #include <map>
 #include <tuple>
-#include "explicit_tree_congr_incl_up.hh"
+#include "explicit_tree_bisimulation_up.hh"
 
 using namespace VATA;
-using namespace ExplicitTreeUpwardCongruence;
+using namespace ExplicitTreeUpwardBisimulation;
 
-CongruenceEquivalence::CongruenceEquivalence(
+BisimulationEquivalence::BisimulationEquivalence(
 	const ExplicitTreeAutCore&        _smaller,
 	const ExplicitTreeAutCore&        _bigger)
-	: CongruenceBase(_smaller, _bigger)
+	: BisimulationBase(_smaller, _bigger)
 	{
 		smaller = smaller.RemoveUnreachableStates();
 		smaller = smaller.RemoveUselessStates();
@@ -29,7 +28,7 @@ CongruenceEquivalence::CongruenceEquivalence(
 		bigger = bigger.RemoveUselessStates();
 	}
 
-RankedAlphabet CongruenceEquivalence::getRankedAlphabet()
+RankedAlphabet BisimulationEquivalence::getRankedAlphabet()
 {
 	RankedAlphabet tmp;
 	for(auto transition : smaller){
@@ -47,7 +46,7 @@ RankedAlphabet CongruenceEquivalence::getRankedAlphabet()
 	return tmp;
 }
 
-StateSetCoupleSet CongruenceEquivalence::getLeafCouples2(const RankedAlphabet &alphabet)
+StateSetCoupleSet BisimulationEquivalence::getLeafCouples(const RankedAlphabet &alphabet)
 {
 	StateSetCoupleSet tmp;
 	for(auto symbol : alphabet){
@@ -62,7 +61,7 @@ StateSetCoupleSet CongruenceEquivalence::getLeafCouples2(const RankedAlphabet &a
 	return tmp;
 }
 
-StateSet CongruenceEquivalence::getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton)
+StateSet BisimulationEquivalence::getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton)
 {
 	StateSet tmp;
 	for(auto transition : automaton){
@@ -74,12 +73,12 @@ StateSet CongruenceEquivalence::getStateSetBySymbol(SymbolType symbol, const Exp
 	return tmp;
 }
 
-StateSetCouple CongruenceEquivalence::selectActual(StateSetCoupleSet& todo)
+StateSetCouple BisimulationEquivalence::selectActual(StateSetCoupleSet& todo)
 {
 	return *(todo.begin());
 }
 
-bool CongruenceEquivalence::isCoupleFinalStateEquivalent(StateSetCouple couple)
+bool BisimulationEquivalence::isCoupleFinalStateEquivalent(StateSetCouple couple)
 {
 	if(couple.first.empty() != couple.second.empty())
 	{
@@ -103,7 +102,7 @@ bool CongruenceEquivalence::isCoupleFinalStateEquivalent(StateSetCouple couple)
 	return set_s.empty() == set_b.empty();
 }
 
-StateSetCoupleSet CongruenceEquivalence::getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet &done)
+StateSetCoupleSet BisimulationEquivalence::getPost(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet &done)
 {
 	TransitionSetCoupleVector actualTransitions;
 	for(size_t pos = 0; pos < symbol.second; pos++)
@@ -130,7 +129,7 @@ StateSetCoupleSet CongruenceEquivalence::getPost(RankedSymbol symbol, StateSetCo
 	return calculatePost(actualTransitions, doneTransitions, symbol.second);
 }
 
-StateSetCoupleSet CongruenceEquivalence::calculatePost(
+StateSetCoupleSet BisimulationEquivalence::calculatePost(
 	TransitionSetCoupleVector &actualTransitions,
 	TransitionSetCouple2DVector &doneTransitions,
 	size_t rank)
@@ -164,7 +163,7 @@ StateSetCoupleSet CongruenceEquivalence::calculatePost(
 }
 
 
-StateSetCouple CongruenceEquivalence::statesFromTransitions(TransitionSet &sml, TransitionSet &bgr)
+StateSetCouple BisimulationEquivalence::statesFromTransitions(TransitionSet &sml, TransitionSet &bgr)
 {
 	StateSetCouple tmp;
 	StateSet s, b;
@@ -181,7 +180,7 @@ StateSetCouple CongruenceEquivalence::statesFromTransitions(TransitionSet &sml, 
 	return tmp;
 }
 
-PostVariantVector CongruenceEquivalence::generatePostVariants(size_t n, size_t k)
+PostVariantVector BisimulationEquivalence::generatePostVariants(size_t n, size_t k)
 {
 	static std::map<std::tuple<size_t, size_t>, PostVariantVector> variant_cache;
 	std::map<std::tuple<size_t, size_t>, PostVariantVector>::iterator iter;
@@ -238,7 +237,7 @@ PostVariantVector CongruenceEquivalence::generatePostVariants(size_t n, size_t k
 	// return;
 }
 
-TransitionSet CongruenceEquivalence::getValidTransitionsAtPos(SymbolType symbol, StateSet actual, const ExplicitTreeAutCore& automaton, size_t position, int index)
+TransitionSet BisimulationEquivalence::getValidTransitionsAtPos(SymbolType symbol, StateSet actual, const ExplicitTreeAutCore& automaton, size_t position, int index)
 {
 	static std::map<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet> transition_cache;
 	std::map<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet>::iterator iter;	
@@ -263,7 +262,7 @@ TransitionSet CongruenceEquivalence::getValidTransitionsAtPos(SymbolType symbol,
 	}
 }
 
-bool CongruenceEquivalence::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
+bool BisimulationEquivalence::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
 {
 	if(isMember(item, set))
 	{
@@ -300,7 +299,7 @@ bool CongruenceEquivalence::isCongruenceClosureMember(StateSetCouple item, State
 	return item.first == aux.first && item.second == aux.second;
 }
 
-bool CongruenceEquivalence::isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item)
+bool BisimulationEquivalence::isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item)
 {
 	static std::map<std::tuple<StateSet, StateSet, StateSetCouple>, bool> cache;
 	std::map<std::tuple<StateSet, StateSet, StateSetCouple>, bool>::iterator iter;
@@ -319,10 +318,10 @@ bool CongruenceEquivalence::isExpandableBy(StateSet &first, StateSet &second, St
 	// 	intersection(second, item.second).size() != 0;
 }
 
-bool CongruenceEquivalence::check()
+bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruence)
 {
 	RankedAlphabet rankedAlphabet = getRankedAlphabet();
-	StateSetCoupleSet done, todo = getLeafCouples2(rankedAlphabet);
+	StateSetCoupleSet done, todo = getLeafCouples(rankedAlphabet);
 	StateSetCouple actual;
 	
 	for(auto couple : todo)

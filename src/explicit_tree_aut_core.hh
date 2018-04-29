@@ -22,6 +22,7 @@
 
 #include <vata/explicit_lts.hh>
 #include <vata/incl_param.hh>
+#include <vata/equiv_param.hh>
 
 #include "util/cache.hh"
 
@@ -1115,7 +1116,7 @@ public:   // methods
 	static bool CheckEquivalence(
 		const ExplicitTreeAutCore&          smaller,
 		const ExplicitTreeAutCore&          bigger,
-		const VATA::InclParam&              params);
+		const VATA::EqParam&              params);
 
 
 	template <

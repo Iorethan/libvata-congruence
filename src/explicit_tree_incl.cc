@@ -17,7 +17,6 @@
 #include "tree_incl_down.hh"
 #include "down_tree_incl_fctor.hh"
 #include "down_tree_opt_incl_fctor.hh"
-#include "explicit_tree_congr_incl_up.hh"
 
 using VATA::ExplicitTreeAutCore;
 using VATA::ExplicitUpwardInclusion;
@@ -107,14 +106,6 @@ bool ExplicitTreeAutCore::CheckInclusion(
 			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
-		}
-
-		case InclParam::CONGR_DEPTH_NOSIM:
-		{
-			//assert(static_cast<typename AutBase::StateType>(-1) == states);
-
-			CongruenceInclusion inclusion(smaller, bigger);
-			return inclusion.check();
 		}
 
 		default:

@@ -17,6 +17,7 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/notimpl_except.hh>
 #include <vata/incl_param.hh>
+#include <vata/equiv_param.hh>
 #include <vata/sim_param.hh>
 
 #include <vata/parsing/abstr_parser.hh>
@@ -209,7 +210,7 @@ public:   // public methods
 	static bool CheckEquivalence(
 		const BDDTopDownTreeAut&                 smaller,
 		const BDDTopDownTreeAut&                 bigger,
-		const VATA::InclParam&                 params)
+		const VATA::EqParam&                 params)
 	{
 		assert(false);
 		return false;
