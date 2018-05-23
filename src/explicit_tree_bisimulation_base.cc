@@ -138,13 +138,13 @@ void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actua
 	size_t i = 0;
 	for(auto couple : done)
 	{
-		keySmall = std::to_string(symbol.first) + "_0_";
+		keySmall = std::to_string(symbol.first) + "_";
 		for (auto item : couple.first)
 		{
 			keySmall += std::to_string(item) + ",";
 		}
 
-		keyBig = std::to_string(symbol.first) + "_1_";
+		keyBig = std::to_string(symbol.first) + "_";
 		for (auto item : couple.second)
 		{
 			keyBig += std::to_string(item) + ",";
