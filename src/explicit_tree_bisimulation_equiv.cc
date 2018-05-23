@@ -179,16 +179,33 @@ bool BisimulationEquivalence::isExpandableBy(StateSet &first, StateSet &second, 
 
 bool BisimulationEquivalence::isExpandableByCached(StateSet &first, StateSet &second, StateSetCouple &item)
 {
-	std::map<std::tuple<StateSet, StateSet, StateSetCouple>, bool>::iterator iter;
-	if((iter = expandable_cache.find(std::make_tuple(first, second, item))) != expandable_cache.end())
+	std::string key = "";
+	for(auto i : first)
+	{
+		key += std::to_string(i) + ",";
+	}
+	for(auto i : second)
+	{
+		key += std::to_string(i) + ",";
+	}
+	for(auto i : item.first)
+	{
+		key += std::to_string(i) + ",";
+	}
+	for(auto i : item.second)
+	{
+		key += std::to_string(i) + ",";
+	}
+	
+	std::unordered_map<std::string, bool>::iterator iter = expandable_cache.find(key);
+	if(iter != expandable_cache.end())
 	{
 		return iter->second;
 	}
 	else
 	{
-		std::tuple<StateSet, StateSet, StateSetCouple> tuple(first, second, item);
 		bool result = intersection(first, item.first).size() != 0 || intersection(second, item.second).size() != 0;
-		expandable_cache.insert(std::pair<std::tuple<StateSet, StateSet, StateSetCouple>, bool>(tuple, result));
+		expandable_cache.insert(std::pair<std::string, bool>(key, result));
 		return result;
 	}
 }

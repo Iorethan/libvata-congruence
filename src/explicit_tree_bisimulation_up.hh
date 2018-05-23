@@ -110,9 +110,9 @@ namespace ExplicitTreeUpwardBisimulation{
 
 			StateSetCoupleSet post;
 			
-			std::string variant_key;
-			std::map<std::tuple<size_t, size_t>, PostVariantVector> variant_cache;
-			std::map<std::tuple<size_t, size_t>, PostVariantVector>::iterator variant_iter;
+			size_t variant_key;
+			std::unordered_map<size_t, PostVariantVector> variant_cache;
+			std::unordered_map<size_t, PostVariantVector>::iterator variant_iter;
 
 			std::string transition_key;
 			std::unordered_map<std::string, TransitionSet> transition_cache;
@@ -171,7 +171,8 @@ namespace ExplicitTreeUpwardBisimulation{
 
 	class BisimulationEquivalence : public BisimulationBase {
 		private:
-			std::map<std::tuple<StateSet, StateSet, StateSetCouple>, bool> expandable_cache;
+			std::unordered_map<std::string, bool> expandable_cache;
+			// std::map<std::tuple<StateSet, StateSet, StateSetCouple>, bool> expandable_cache;
 
 		public:
 			BisimulationEquivalence(

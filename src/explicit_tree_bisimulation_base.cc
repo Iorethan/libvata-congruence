@@ -106,13 +106,13 @@ void BisimulationBase::getPost(RankedSymbol symbol, StateSetCouple actual, State
 
 void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done)
 {
-	std::string keySmall = std::to_string(symbol.first) + "_0_";
+	std::string keySmall = std::to_string(symbol.first) + "_";
 	for (auto item : actual.first)
 	{
 		keySmall += std::to_string(item) + ",";
 	}
 
-	std::string keyBig = std::to_string(symbol.first) + "_1_";
+	std::string keyBig = std::to_string(symbol.first) + "_";
 	for (auto item : actual.second)
 	{
 		keyBig += std::to_string(item) + ",";
@@ -214,8 +214,9 @@ StateSet BisimulationBase::statesFromTransitions(TransitionSet &transitions)
 
 void BisimulationBase::generatePostVariants(size_t n, size_t k)
 {
-	std::tuple<size_t, size_t> tuple(n, k);
-	if((variant_cache.find(tuple)) == variant_cache.end())
+	variant_key = k * 1000 + n;
+	variant_iter = variant_cache.find(variant_key);
+	if(variant_iter == variant_cache.end())
 	{
 		PostVariantVector current, prev;
 		PostVariant subresult;
@@ -234,9 +235,9 @@ void BisimulationBase::generatePostVariants(size_t n, size_t k)
 			prev = current;
 			current.clear();
 		}
-		variant_cache.emplace(std::pair<std::tuple<size_t, size_t>, PostVariantVector>(tuple, prev));
+		variant_cache.emplace(std::pair<size_t, PostVariantVector>(variant_key, prev));
+		variant_iter = variant_cache.find(variant_key);
 	}
-	variant_iter = variant_cache.find(std::make_tuple(n, k));
 }
 
 TransitionSet BisimulationBase::getValidTransitionsAtPos(SymbolType symbol, StateSet actual, const ExplicitTreeAutCore& automaton, size_t position)
