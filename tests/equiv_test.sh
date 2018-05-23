@@ -19,7 +19,7 @@ METHODS=(
   # "bisim-up-cached"
   # "congr-up"
   "congr-up-cached"
-  "congr-up-cached-lax"
+  # "congr-up-cached-lax"
 )
 
 ################################# FUNCTIONS ##################################

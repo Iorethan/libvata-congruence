@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 #include "explicit_tree_bisimulation_up.hh"
+#include <unordered_map>
 
 using namespace VATA;
 using namespace ExplicitTreeUpwardBisimulation;
@@ -17,8 +18,8 @@ BisimulationBase::BisimulationBase(
 	const ExplicitTreeAutCore&        smaller,
 	const ExplicitTreeAutCore&        bigger)
 	: smaller(smaller), bigger(bigger), post(),
-		variant_cache(), variant_iter(),
-		transition_cache(), transition_iter()
+		variant_key(), variant_cache(), variant_iter(),
+		transition_key(), transition_cache(), transition_iter()
 {}
 
 RankedAlphabet BisimulationBase::getRankedAlphabet()
@@ -50,19 +51,17 @@ void BisimulationBase::pruneRankedAlphabet(RankedAlphabet &rankedAlphabet)
 	}
 }
 
-StateSetCoupleSet BisimulationBase::getLeafCouples(const RankedAlphabet &alphabet)
+void BisimulationBase::getLeafCouples(const RankedAlphabet &alphabet, StateSetCoupleSet &set)
 {
-	StateSetCoupleSet tmp;
 	for(auto symbol : alphabet){
 		if(symbol.second == 0)
 		{
 			StateSetCouple c;
 			c.first = getStateSetBySymbol(symbol.first, smaller);
 			c.second = getStateSetBySymbol(symbol.first, bigger);
-			tmp.insert(c);
+			set.insert(c);
 		}
 	}
-	return tmp;
 }
 
 StateSet BisimulationBase::getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton)
@@ -105,16 +104,33 @@ void BisimulationBase::getPost(RankedSymbol symbol, StateSetCouple actual, State
 	return;
 }
 
-void BisimulationBase::getPostCached(RankedSymbol symbol, StateSetCouple actual, StateSetCoupleSet &done)
+void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done)
 {
+	std::string keySmall = std::to_string(symbol.first) + "_0_";
+	for (auto item : actual.first)
+	{
+		keySmall += std::to_string(item) + ",";
+	}
+
+	std::string keyBig = std::to_string(symbol.first) + "_1_";
+	for (auto item : actual.second)
+	{
+		keyBig += std::to_string(item) + ",";
+	}
+
 	TransitionSetCoupleVector actualTransitions;
 	for(size_t pos = 0; pos < symbol.second; pos++)
 	{
 		TransitionSetCouple tmp;
-		getValidTransitionsAtPosCached(symbol.first, actual.first, smaller, pos, 0);
+
+		transition_key = keySmall + std::to_string(pos);
+		getValidTransitionsAtPosCached(smaller, actual.first, symbol.first, pos);
 		tmp.first = transition_iter->second;
-		getValidTransitionsAtPosCached(symbol.first, actual.second, bigger, pos, 1);
+
+		transition_key = keyBig + std::to_string(pos);
+		getValidTransitionsAtPosCached(bigger, actual.second, symbol.first, pos);
 		tmp.second =  transition_iter->second;
+
 		actualTransitions.push_back(tmp);
 	}
 
@@ -122,13 +138,30 @@ void BisimulationBase::getPostCached(RankedSymbol symbol, StateSetCouple actual,
 	size_t i = 0;
 	for(auto couple : done)
 	{
+		keySmall = std::to_string(symbol.first) + "_0_";
+		for (auto item : couple.first)
+		{
+			keySmall += std::to_string(item) + ",";
+		}
+
+		keyBig = std::to_string(symbol.first) + "_1_";
+		for (auto item : couple.second)
+		{
+			keyBig += std::to_string(item) + ",";
+		}
+
 		for(size_t pos = 0; pos < symbol.second; pos++)
 		{
 			TransitionSetCouple tmp;
-			getValidTransitionsAtPosCached(symbol.first, couple.first, smaller, pos, 0);
+
+			transition_key = keySmall + std::to_string(pos);
+			getValidTransitionsAtPosCached(smaller, actual.first, symbol.first, pos);
 			tmp.first = transition_iter->second;
-			getValidTransitionsAtPosCached(symbol.first, couple.second, bigger, pos, 1);
+
+			transition_key = keyBig + std::to_string(pos);
+			getValidTransitionsAtPosCached(bigger, actual.second, symbol.first, pos);
 			tmp.second = transition_iter->second;
+
 			doneTransitions[i].push_back(tmp);
 		}
 		i++;
@@ -219,10 +252,10 @@ TransitionSet BisimulationBase::getValidTransitionsAtPos(SymbolType symbol, Stat
 	return set;
 }
 
-void BisimulationBase::getValidTransitionsAtPosCached(SymbolType symbol, StateSet actual, const ExplicitTreeAutCore& automaton, size_t position, int index)
+void BisimulationBase::getValidTransitionsAtPosCached(const ExplicitTreeAutCore& automaton, StateSet &actual, SymbolType &symbol, size_t position)
 {
-	std::tuple<SymbolType, StateSet, size_t, int> tuple(symbol, actual, position, index);
-	if(transition_cache.find(tuple) == transition_cache.end())
+	transition_iter = transition_cache.find(transition_key);
+	if(transition_iter == transition_cache.end())
 	{
 		TransitionSet set;
 		for(auto transition : automaton)
@@ -232,7 +265,7 @@ void BisimulationBase::getValidTransitionsAtPosCached(SymbolType symbol, StateSe
 				set.insert(transition);
 			}
 		}
-		transition_cache.emplace(std::pair<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet>(tuple, set));
+		transition_cache.emplace(std::pair<std::string, TransitionSet>(transition_key, set));
+		transition_iter = transition_cache.find(transition_key);
 	}
-	transition_iter = transition_cache.find(tuple);
 }

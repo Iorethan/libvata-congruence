@@ -33,13 +33,10 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 	ExplicitTreeAutCore newBigger;
 	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
-	if (params.GetAlgorithm() == EqParam::e_algorithm::antichains)
-	{
-		newSmaller = smaller;
-		newBigger = bigger;
+	newSmaller = smaller;
+	newBigger = bigger;
 
-		states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
-	}
+	states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
 
 	switch (params.GetOptions())
 	{
@@ -80,7 +77,7 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 		{
 			// assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(smaller, bigger);
+			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(newSmaller, newBigger);
 			return equivalence.check(true, true, false);
 		}
 
@@ -88,7 +85,7 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 		{
 			// assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(smaller, bigger);
+			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(newSmaller, newBigger);
 			return equivalence.check(true, true, true);
 		}
 

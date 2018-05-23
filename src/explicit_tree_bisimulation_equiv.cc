@@ -27,7 +27,6 @@ BisimulationEquivalence::BisimulationEquivalence(
 	}
 
 
-
 bool BisimulationEquivalence::areLeavesEquivalent(StateSetCoupleSet &todo)
 {
 	for(auto couple : todo)
@@ -153,7 +152,6 @@ bool BisimulationEquivalence::isCongruenceClosureMemberCachedLax(StateSetCouple 
 	StateSetCouple aux;
 	bool changed = true;
 	std::vector<bool> used_s(set.size(), false);
-	std::vector<bool> used_b(set.size(), false);
 	while(changed)
 	{
 		unsigned i = 0;
@@ -198,9 +196,12 @@ bool BisimulationEquivalence::isExpandableByCached(StateSet &first, StateSet &se
 bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruence, const bool beLax)
 {
 	RankedAlphabet rankedAlphabet = getRankedAlphabet();
-	StateSetCoupleSet done, todo = getLeafCouples(rankedAlphabet);
+	StateSetCoupleSet all, done, todo, knownPairs;
 	StateSetCouple actual;
+	getLeafCouples(rankedAlphabet, all);
 	pruneRankedAlphabet(rankedAlphabet);
+	todo = all;
+	knownPairs = all;
 	
 	if(!areLeavesEquivalent(todo))
 	{
@@ -209,65 +210,108 @@ bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruenc
 
 	while(!todo.empty())
 	{
-		StateSetCoupleSet knownPairs = set_union(todo, done);
 		actual = selectActual(todo);
 
 		todo.erase(actual);
 		done.insert(actual);
-
+		knownPairs.insert(actual);
+		
 		for(auto symbol : rankedAlphabet)
 		{
-			if(useCache)
-			{
-				getPostCached(symbol, actual, done);
-			}
-			else
-			{
-				getPost(symbol, actual, done);
-			}
+			getPostCached(symbol, actual, done);
 			for(auto next : post)
 			{
 				if(!isCoupleFinalStateEquivalent(next))
 				{
 					return false;
 				}
-				
-				if(useCongruence)
+
+				if(!isCongruenceClosureMemberCachedStrict(next, knownPairs))
 				{
-					if(useCache)
-					{
-						if(beLax)
-						{
-							if(!isCongruenceClosureMemberCachedLax(next, knownPairs))
-							{
-								todo.insert(next);
-							}
-						}
-						else
-						{
-							if(!isCongruenceClosureMemberCachedStrict(next, knownPairs))
-							{
-								todo.insert(next);
-							}
-						}
-					}
-					else
-					{
-						if(!isCongruenceClosureMember(next, knownPairs))
-						{
-							todo.insert(next);
-						}
-					}
-				}
-				else
-				{
-					if(!isMember(next, knownPairs))
-					{
-						todo.insert(next);
-					}
+					todo.insert(next);
 				}
 			}
 		}
 	}
 	return true;
 }
+
+// bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruence, const bool beLax)
+// {
+// 	RankedAlphabet rankedAlphabet = getRankedAlphabet();
+// 	StateSetCoupleSet all, done, todo, knownPairs;
+// 	StateSetCouple actual;
+// 	getLeafCouples(rankedAlphabet, all);
+// 	pruneRankedAlphabet(rankedAlphabet);
+// 	todo = all;
+// 	knownPairs = all;
+	
+// 	if(!areLeavesEquivalent(todo))
+// 	{
+// 		return false;
+// 	}
+
+// 	while(!todo.empty())
+// 	{
+// 		actual = selectActual(todo);
+
+// 		todo.erase(actual);
+// 		done.insert(actual);
+// 		knownPairs.insert(actual);
+
+// 		for(auto symbol : rankedAlphabet)
+// 		{
+// 			if(useCache)
+// 			{
+// 				getPostCached(symbol, actual, done);
+// 			}
+// 			else
+// 			{
+// 				getPost(symbol, actual, done);
+// 			}
+// 			for(auto next : post)
+// 			{
+// 				if(!isCoupleFinalStateEquivalent(next))
+// 				{
+// 					return false;
+// 				}
+				
+// 				if(useCongruence)
+// 				{
+// 					if(useCache)
+// 					{
+// 						if(beLax)
+// 						{
+// 							if(!isCongruenceClosureMemberCachedLax(next, knownPairs))
+// 							{
+// 								todo.insert(next);
+// 							}
+// 						}
+// 						else
+// 						{
+// 							if(!isCongruenceClosureMemberCachedStrict(next, knownPairs))
+// 							{
+// 								todo.insert(next);
+// 							}
+// 						}
+// 					}
+// 					else
+// 					{
+// 						if(!isCongruenceClosureMember(next, knownPairs))
+// 						{
+// 							todo.insert(next);
+// 						}
+// 					}
+// 				}
+// 				else
+// 				{
+// 					if(!isMember(next, knownPairs))
+// 					{
+// 						todo.insert(next);
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return true;
+// }

@@ -28,7 +28,7 @@ namespace ExplicitTreeUpwardBisimulation{
 
 
 	//mnozina stavu
-	typedef std::set <VATA::ExplicitTreeAutCore::StateType> StateSet;
+	typedef std::set <StateType> StateSet;
 
 	//dvojice mnozin stavu
 	typedef std::pair <StateSet, StateSet> StateSetCouple;
@@ -63,17 +63,23 @@ namespace ExplicitTreeUpwardBisimulation{
 	typedef std::vector<size_t> PostVariant;
 	typedef std::vector<PostVariant> PostVariantVector;
 
+	struct s1 {
+		SymbolType t;
+		StateSet s;
+		size_t sz;
+		int i;
+	};
 
 	class BisimulationBase;
 	class BisimulationEquivalence;
 
 	
-	template <typename type> bool isMember(type item, std::set<type> set)
+	template <typename type> bool isMember(type item, std::set<type> &set)
 	{
 		return set.find(item) != set.end();
 	}
 
-	template <typename type>  std::set<type> intersection(std::set<type> left, std::set<type> right)
+	template <typename type>  std::set<type> intersection(std::set<type> &left, std::set<type> &right)
 	{
 		std::set<type> intersect;
 		set_intersection(	left.begin(),
@@ -85,7 +91,7 @@ namespace ExplicitTreeUpwardBisimulation{
 		return intersect;
 	}
 
-	template <typename type>  std::set<type> set_union(std::set<type> left, std::set<type> right)
+	template <typename type>  std::set<type> set_union(std::set<type> &left, std::set<type> &right)
 	{
 		std::set<type> intersect;
 		set_union(	left.begin(),
@@ -104,10 +110,13 @@ namespace ExplicitTreeUpwardBisimulation{
 
 			StateSetCoupleSet post;
 			
+			std::string variant_key;
 			std::map<std::tuple<size_t, size_t>, PostVariantVector> variant_cache;
 			std::map<std::tuple<size_t, size_t>, PostVariantVector>::iterator variant_iter;
-			std::map<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet> transition_cache;
-			std::map<std::tuple<SymbolType, StateSet, size_t, int>, TransitionSet>::iterator transition_iter;
+
+			std::string transition_key;
+			std::unordered_map<std::string, TransitionSet> transition_cache;
+			std::unordered_map<std::string, TransitionSet>::iterator transition_iter;
 
 		public:
 			BisimulationBase(
@@ -126,7 +135,7 @@ namespace ExplicitTreeUpwardBisimulation{
 			RankedAlphabet getRankedAlphabet();
 			static void pruneRankedAlphabet(RankedAlphabet &alphabet);
 
-			StateSetCoupleSet getLeafCouples(const RankedAlphabet &alphabet);
+			void getLeafCouples(const RankedAlphabet &alphabet, StateSetCoupleSet &set);
 			static StateSet getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton);
 
 			void getPost(
@@ -134,8 +143,8 @@ namespace ExplicitTreeUpwardBisimulation{
 				StateSetCouple actual,
 				StateSetCoupleSet &done);
 			void getPostCached(
-				RankedSymbol symbol,
-				StateSetCouple actual,
+				RankedSymbol &symbol,
+				StateSetCouple &actual,
 				StateSetCoupleSet &done);
 
 			void calculatePost(
@@ -151,11 +160,11 @@ namespace ExplicitTreeUpwardBisimulation{
 				const ExplicitTreeAutCore& automaton,
 				size_t position);
 			void getValidTransitionsAtPosCached(
-				SymbolType symbol,
-				StateSet actual,
 				const ExplicitTreeAutCore& automaton,
-				size_t position,
-				int index);
+				StateSet &actual,
+				SymbolType &symbol,
+				size_t position
+			);
 	};
 
 	//-----------------------------------------------------------------------------
