@@ -17,6 +17,7 @@
 #include "tree_incl_down.hh"
 #include "down_tree_incl_fctor.hh"
 #include "down_tree_opt_incl_fctor.hh"
+#include "explicit_tree_bisimulation_up.hh"
 
 using VATA::ExplicitTreeAutCore;
 using VATA::ExplicitUpwardInclusion;
@@ -106,6 +107,12 @@ bool ExplicitTreeAutCore::CheckInclusion(
 			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
+		}
+
+		case InclParam::CONGR_DEPTH_NOSIM:
+		{
+			ExplicitTreeUpwardBisimulation::BisimulationInclusion inclusion(newSmaller, newBigger);
+			return inclusion.check(true, true, false);
 		}
 
 		default:

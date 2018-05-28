@@ -15,7 +15,7 @@
 using namespace VATA;
 using namespace ExplicitTreeUpwardBisimulation;
 
-BisimulationEquivalence::BisimulationEquivalence(
+BisimulationInclusion::BisimulationInclusion(
 	const ExplicitTreeAutCore&        _smaller,
 	const ExplicitTreeAutCore&        _bigger)
 	: BisimulationBase(_smaller, _bigger), expandable_cache()
@@ -27,7 +27,7 @@ BisimulationEquivalence::BisimulationEquivalence(
 	}
 
 
-bool BisimulationEquivalence::areLeavesEquivalent(StateSetCoupleSet &todo)
+bool BisimulationInclusion::areLeavesEquivalent(StateSetCoupleSet &todo)
 {
 	for(auto couple : todo)
 	{
@@ -39,9 +39,14 @@ bool BisimulationEquivalence::areLeavesEquivalent(StateSetCoupleSet &todo)
 	return true;
 }
 
-bool BisimulationEquivalence::isCoupleFinalStateEquivalent(StateSetCouple &couple)
+bool BisimulationInclusion::isCoupleFinalStateEquivalent(StateSetCouple &couple)
 {
-	if(couple.first.empty() != couple.second.empty())
+	if(couple.first.empty())
+	{
+		return true;
+	}
+
+	if(couple.second.empty())
 	{
 		return false;
 	}
@@ -60,15 +65,15 @@ bool BisimulationEquivalence::isCoupleFinalStateEquivalent(StateSetCouple &coupl
 		bigger.GetFinalStates().begin(), bigger.GetFinalStates().end(),
 		std::inserter(set_b, set_b.begin())
 	);
-	return set_s.empty() == set_b.empty();
+	return set_s.empty() || !set_b.empty();
 }
 
-StateSetCouple BisimulationEquivalence::selectActual(StateSetCoupleSet& todo)
+StateSetCouple BisimulationInclusion::selectActual(StateSetCoupleSet& todo)
 {
 	return *(todo.begin());
 }
 
-bool BisimulationEquivalence::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
+bool BisimulationInclusion::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
 {
 	if(isMember(item, set))
 	{
@@ -105,7 +110,7 @@ bool BisimulationEquivalence::isCongruenceClosureMember(StateSetCouple item, Sta
 	return item.first == aux.first && item.second == aux.second;
 }
 
-bool BisimulationEquivalence::isCongruenceClosureMemberCachedStrict(StateSetCouple item, StateSetCoupleSet &set)
+bool BisimulationInclusion::isCongruenceClosureMemberCachedStrict(StateSetCouple item, StateSetCoupleSet &set)
 {
 	if(isMember(item, set))
 	{
@@ -142,7 +147,7 @@ bool BisimulationEquivalence::isCongruenceClosureMemberCachedStrict(StateSetCoup
 	return item.first == aux.first && item.second == aux.second;
 }
 
-bool BisimulationEquivalence::isCongruenceClosureMemberCachedLax(StateSetCouple item, StateSetCoupleSet &set)
+bool BisimulationInclusion::isCongruenceClosureMemberCachedLax(StateSetCouple item, StateSetCoupleSet &set)
 {
 	if(isMember(item, set))
 	{
@@ -171,13 +176,13 @@ bool BisimulationEquivalence::isCongruenceClosureMemberCachedLax(StateSetCouple 
 	return item.first == item.second;
 }
 
-bool BisimulationEquivalence::isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item)
+bool BisimulationInclusion::isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item)
 {
 	return intersection(first, item.first).size() != 0 ||
 		intersection(second, item.second).size() != 0;
 }
 
-bool BisimulationEquivalence::isExpandableByCached(StateSet &first, StateSet &second, StateSetCouple &item)
+bool BisimulationInclusion::isExpandableByCached(StateSet &first, StateSet &second, StateSetCouple &item)
 {
 	std::string key = "";
 	for(auto i : first)
@@ -210,50 +215,7 @@ bool BisimulationEquivalence::isExpandableByCached(StateSet &first, StateSet &se
 	}
 }
 
-// bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruence, const bool beLax)
-// {
-// 	RankedAlphabet rankedAlphabet = getRankedAlphabet();
-// 	StateSetCoupleSet all, done, todo, knownPairs;
-// 	StateSetCouple actual;
-// 	getLeafCouples(rankedAlphabet, all);
-// 	pruneRankedAlphabet(rankedAlphabet);
-// 	todo = all;
-// 	knownPairs = all;
-	
-// 	if(!areLeavesEquivalent(todo))
-// 	{
-// 		return false;
-// 	}
-
-// 	while(!todo.empty())
-// 	{
-// 		actual = selectActual(todo);
-
-// 		todo.erase(actual);
-// 		done.insert(actual);
-// 		knownPairs.insert(actual);
-
-// 		for(auto symbol : rankedAlphabet)
-// 		{
-// 			getPostCached(symbol, actual, done);
-// 			for(auto next : post)
-// 			{
-// 				if(!isCoupleFinalStateEquivalent(next))
-// 				{
-// 					return false;
-// 				}
-
-// 				if(!isCongruenceClosureMemberCachedStrict(next, knownPairs))
-// 				{
-// 					todo.insert(next);
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return true;
-// }
-
-bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruence, const bool beLax)
+bool BisimulationInclusion::check(const bool useCache, const bool	useCongruence, const bool beLax)
 {
 	RankedAlphabet rankedAlphabet = getRankedAlphabet();
 	StateSetCoupleSet all, done, todo, knownPairs;
@@ -297,7 +259,7 @@ bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruenc
 				{
 					if(useCache)
 					{
-						if(!isCongruenceClosureMember(next, knownPairs))
+						if(!isCongruenceClosureMemberCachedStrict(next, knownPairs))
 						{
 							todo.insert(next);
 						}

@@ -89,6 +89,7 @@ add_library(libvata STATIC
 	symbolic_tree_aut_base_core.cc
 	explicit_tree_bisimulation_base.cc
 	explicit_tree_bisimulation_equiv.cc
+	explicit_tree_bisimulation_incl.cc
 	explicit_tree_equiv.cc
 )
 

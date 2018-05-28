@@ -107,16 +107,18 @@ void BisimulationBase::getPost(RankedSymbol symbol, StateSetCouple actual, State
 void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done)
 {
 	std::string keySmall = std::to_string(symbol.first) + "_";
-	for (auto item : actual.first)
-	{
-		keySmall += std::to_string(item) + ",";
-	}
+	serialize(keySmall, actual.first);
+	// for (auto item : actual.first)
+	// {
+	// 	keySmall += std::to_string(item) + ",";
+	// }
 
 	std::string keyBig = std::to_string(symbol.first) + "_";
-	for (auto item : actual.second)
-	{
-		keyBig += std::to_string(item) + ",";
-	}
+	serialize(keyBig, actual.second);
+	// for (auto item : actual.second)
+	// {
+	// 	keyBig += std::to_string(item) + ",";
+	// }
 
 	TransitionSetCoupleVector actualTransitions;
 	for(size_t pos = 0; pos < symbol.second; pos++)
@@ -139,16 +141,18 @@ void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actua
 	for(auto couple : done)
 	{
 		keySmall = std::to_string(symbol.first) + "_";
-		for (auto item : couple.first)
-		{
-			keySmall += std::to_string(item) + ",";
-		}
+		serialize(keySmall, couple.first);
+		// for (auto item : couple.first)
+		// {
+		// 	keySmall += std::to_string(item) + ",";
+		// }
 
 		keyBig = std::to_string(symbol.first) + "_";
-		for (auto item : couple.second)
-		{
-			keyBig += std::to_string(item) + ",";
-		}
+		serialize(keyBig, couple.second);
+		// for (auto item : couple.second)
+		// {
+		// 	keyBig += std::to_string(item) + ",";
+		// }
 
 		for(size_t pos = 0; pos < symbol.second; pos++)
 		{
@@ -168,6 +172,14 @@ void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actua
 	}
 	calculatePost(actualTransitions, doneTransitions, symbol.second);
 	return;
+}
+
+void BisimulationBase::serialize(std::string &key, const StateSet &set)
+{		
+	for (auto item : set)
+	{
+		key += std::to_string(item) + ",";
+	}
 }
 
 void BisimulationBase::calculatePost(
