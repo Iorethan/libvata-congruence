@@ -120,23 +120,23 @@ void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actua
 	// 	keyBig += std::to_string(item) + ",";
 	// }
 
-	TransitionSetCoupleVector actualTransitions;
+	TransitionSetKeyCoupleVector actualTransitions;
 	for(size_t pos = 0; pos < symbol.second; pos++)
 	{
-		TransitionSetCouple tmp;
+		TransitionSetKeyCouple tmp;
 
 		transition_key = keySmall + std::to_string(pos);
 		getValidTransitionsAtPosCached(smaller, actual.first, symbol.first, pos);
-		tmp.first = transition_iter->second;
+		tmp.first = transition_iter->first;
 
 		transition_key = keyBig + std::to_string(pos);
 		getValidTransitionsAtPosCached(bigger, actual.second, symbol.first, pos);
-		tmp.second =  transition_iter->second;
+		tmp.second =  transition_iter->first;
 
 		actualTransitions.push_back(tmp);
 	}
 
-	TransitionSetCouple2DVector doneTransitions(done.size());
+	TransitionSetKeyCouple2DVector doneTransitions(done.size());
 	size_t i = 0;
 	for(auto couple : done)
 	{
@@ -156,21 +156,21 @@ void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actua
 
 		for(size_t pos = 0; pos < symbol.second; pos++)
 		{
-			TransitionSetCouple tmp;
+			TransitionSetKeyCouple tmp;
 
 			transition_key = keySmall + std::to_string(pos);
 			getValidTransitionsAtPosCached(smaller, actual.first, symbol.first, pos);
-			tmp.first = transition_iter->second;
+			tmp.first = transition_iter->first;
 
 			transition_key = keyBig + std::to_string(pos);
 			getValidTransitionsAtPosCached(bigger, actual.second, symbol.first, pos);
-			tmp.second = transition_iter->second;
+			tmp.second = transition_iter->first;
 
 			doneTransitions[i].push_back(tmp);
 		}
 		i++;
 	}
-	calculatePost(actualTransitions, doneTransitions, symbol.second);
+	calculatePostKey(actualTransitions, doneTransitions, symbol.second);
 	return;
 }
 
@@ -202,6 +202,38 @@ void BisimulationBase::calculatePost(
 				{
 					sml = intersection(sml, doneTransitions[variant[i + correction]][i].first);
 					bgr = intersection(bgr, doneTransitions[variant[i + correction]][i].second);
+				}
+				else
+				{
+					correction = -1;
+				}
+			}
+			post.emplace(statesFromTransitions(sml), statesFromTransitions(bgr));
+		}
+	}
+	return;
+}
+
+void BisimulationBase::calculatePostKey(
+	TransitionSetKeyCoupleVector &actualTransitions,
+	TransitionSetKeyCouple2DVector &doneTransitions,
+	size_t rank)
+{
+	post.clear();
+	generatePostVariants(rank - 1, doneTransitions.size());
+	for(size_t pos = 0; pos < rank; pos++)
+	{
+		for(auto variant : variant_iter->second)
+		{
+			int correction = 0;
+			TransitionSet sml = transition_cache.find(actualTransitions[pos].first)->second;
+			TransitionSet bgr = transition_cache.find(actualTransitions[pos].second)->second;
+			for(size_t i = 0; i < rank; i++)
+			{
+				if (i != pos)
+				{
+					sml = intersection(sml, transition_cache.find(doneTransitions[variant[i + correction]][i].first)->second);
+					bgr = intersection(bgr, transition_cache.find(doneTransitions[variant[i + correction]][i].second)->second);
 				}
 				else
 				{

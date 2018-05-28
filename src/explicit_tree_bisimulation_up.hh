@@ -42,10 +42,17 @@ namespace ExplicitTreeUpwardBisimulation{
 
 	//vector prechodu
 	typedef std::vector<Transition> TransitionVector;
+
 	typedef std::set<Transition> TransitionSet;
+	typedef std::string TransitionSetKey;
+
 	typedef std::pair<TransitionSet, TransitionSet> TransitionSetCouple;
+	typedef std::pair<std::string, std::string> TransitionSetKeyCouple;
+
 	typedef std::vector<TransitionSetCouple> TransitionSetCoupleVector;
 	typedef std::vector<TransitionSetCoupleVector> TransitionSetCouple2DVector;
+	typedef std::vector<TransitionSetKeyCouple> TransitionSetKeyCoupleVector;
+	typedef std::vector<TransitionSetKeyCoupleVector> TransitionSetKeyCouple2DVector;
 
 	//bitmap
 	typedef std::vector<bool> Bitmap;
@@ -150,6 +157,10 @@ namespace ExplicitTreeUpwardBisimulation{
 			void calculatePost(
 				TransitionSetCoupleVector &actualTransitions,
 				TransitionSetCouple2DVector &doneTransitions,
+				size_t rank);
+			void calculatePostKey(
+				TransitionSetKeyCoupleVector &actualTransitions,
+				TransitionSetKeyCouple2DVector &doneTransitions,
 				size_t rank);
 			static StateSet statesFromTransitions(TransitionSet &transitions);
 			void generatePostVariants(size_t n, size_t k);
