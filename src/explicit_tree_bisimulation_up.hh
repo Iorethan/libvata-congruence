@@ -44,6 +44,7 @@ namespace ExplicitTreeUpwardBisimulation{
 	typedef std::vector<Transition> TransitionVector;
 
 	typedef std::set<Transition> TransitionSet;
+	typedef std::set<size_t> TransitionIdSet;
 	typedef std::string TransitionSetKey;
 
 	typedef std::pair<TransitionSet, TransitionSet> TransitionSetCouple;
@@ -115,20 +116,20 @@ namespace ExplicitTreeUpwardBisimulation{
 			ExplicitTreeAutCore smaller;
 			ExplicitTreeAutCore bigger;
 
+			StateSetCoupleSet post;
+
 			TransitionVector smallerTrans;
 			TransitionVector biggerTrans;
 
 			RankedAlphabet rankedAlphabet;
-
-			StateSetCoupleSet post;
 			
 			size_t variant_key;
 			std::unordered_map<size_t, PostVariantVector> variant_cache;
 			std::unordered_map<size_t, PostVariantVector>::iterator variant_iter;
 
 			std::string transition_key;
-			std::unordered_map<std::string, TransitionSet> transition_cache;
-			std::unordered_map<std::string, TransitionSet>::iterator transition_iter;
+			std::unordered_map<std::string, TransitionIdSet> transition_cache;
+			std::unordered_map<std::string, TransitionIdSet>::iterator transition_iter;
 
 		public:
 			BisimulationBase(
@@ -166,7 +167,7 @@ namespace ExplicitTreeUpwardBisimulation{
 				TransitionSetKeyCoupleVector &actualTransitions,
 				TransitionSetKeyCouple2DVector &doneTransitions,
 				size_t rank);
-			static StateSet statesFromTransitions(TransitionSet &transitions);
+			static StateSet statesFromTransitions(TransitionIdSet &ids, TransitionVector &transitions);
 			void generatePostVariants(size_t n, size_t k);
 
 			void serialize(std::string &key, const StateSet &set);
@@ -177,7 +178,7 @@ namespace ExplicitTreeUpwardBisimulation{
 				const ExplicitTreeAutCore& automaton,
 				size_t position);
 			void getValidTransitionsAtPosCached(
-				const ExplicitTreeAutCore& automaton,
+				const TransitionVector& automaton,
 				StateSet &actual,
 				SymbolType &symbol,
 				size_t position

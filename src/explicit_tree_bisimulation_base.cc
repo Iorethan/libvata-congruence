@@ -18,16 +18,19 @@ BisimulationBase::BisimulationBase(
 	const ExplicitTreeAutCore&        smaller,
 	const ExplicitTreeAutCore&        bigger)
 	: smaller(smaller), bigger(bigger), post(),
+		smallerTrans(), biggerTrans(), rankedAlphabet(),
 		variant_key(), variant_cache(), variant_iter(),
 		transition_key(), transition_cache(), transition_iter()
 {
 	RankedSymbol s;
 	for(auto transition : smaller){
+		smallerTrans.push_back(transition);
 		s.first = transition.GetSymbol();
 		s.second = transition.GetChildren().size();
 		rankedAlphabet.insert(s);
 	}
 	for(auto transition : bigger){
+		biggerTrans.push_back(transition);
 		s.first = transition.GetSymbol();
 		s.second = transition.GetChildren().size();
 		rankedAlphabet.insert(s);
@@ -102,17 +105,9 @@ void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actua
 {
 	std::string keySmall = std::to_string(symbol.first) + "_";
 	serialize(keySmall, actual.first);
-	// for (auto item : actual.first)
-	// {
-	// 	keySmall += std::to_string(item) + ",";
-	// }
 
 	std::string keyBig = std::to_string(symbol.first) + "_";
 	serialize(keyBig, actual.second);
-	// for (auto item : actual.second)
-	// {
-	// 	keyBig += std::to_string(item) + ",";
-	// }
 
 	TransitionSetKeyCoupleVector actualTransitions;
 	for(size_t pos = 0; pos < symbol.second; pos++)
@@ -120,11 +115,11 @@ void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actua
 		TransitionSetKeyCouple tmp;
 
 		transition_key = keySmall + std::to_string(pos);
-		getValidTransitionsAtPosCached(smaller, actual.first, symbol.first, pos);
+		getValidTransitionsAtPosCached(smallerTrans, actual.first, symbol.first, pos);
 		tmp.first = transition_iter->first;
 
 		transition_key = keyBig + std::to_string(pos);
-		getValidTransitionsAtPosCached(bigger, actual.second, symbol.first, pos);
+		getValidTransitionsAtPosCached(biggerTrans, actual.second, symbol.first, pos);
 		tmp.second =  transition_iter->first;
 
 		actualTransitions.push_back(tmp);
@@ -136,28 +131,20 @@ void BisimulationBase::getPostCached(RankedSymbol &symbol, StateSetCouple &actua
 	{
 		keySmall = std::to_string(symbol.first) + "_";
 		serialize(keySmall, couple.first);
-		// for (auto item : couple.first)
-		// {
-		// 	keySmall += std::to_string(item) + ",";
-		// }
 
 		keyBig = std::to_string(symbol.first) + "_";
 		serialize(keyBig, couple.second);
-		// for (auto item : couple.second)
-		// {
-		// 	keyBig += std::to_string(item) + ",";
-		// }
 
 		for(size_t pos = 0; pos < symbol.second; pos++)
 		{
 			TransitionSetKeyCouple tmp;
 
 			transition_key = keySmall + std::to_string(pos);
-			getValidTransitionsAtPosCached(smaller, actual.first, symbol.first, pos);
+			getValidTransitionsAtPosCached(smallerTrans, actual.first, symbol.first, pos);
 			tmp.first = transition_iter->first;
 
 			transition_key = keyBig + std::to_string(pos);
-			getValidTransitionsAtPosCached(bigger, actual.second, symbol.first, pos);
+			getValidTransitionsAtPosCached(biggerTrans, actual.second, symbol.first, pos);
 			tmp.second = transition_iter->first;
 
 			doneTransitions[i].push_back(tmp);
@@ -202,7 +189,7 @@ void BisimulationBase::calculatePost(
 					correction = -1;
 				}
 			}
-			post.emplace(statesFromTransitions(sml), statesFromTransitions(bgr));
+			// post.emplace(statesFromTransitions(sml), statesFromTransitions(bgr));
 		}
 	}
 	return;
@@ -220,8 +207,8 @@ void BisimulationBase::calculatePostKey(
 		for(auto variant : variant_iter->second)
 		{
 			int correction = 0;
-			TransitionSet sml = transition_cache.find(actualTransitions[pos].first)->second;
-			TransitionSet bgr = transition_cache.find(actualTransitions[pos].second)->second;
+			TransitionIdSet sml = transition_cache.find(actualTransitions[pos].first)->second;
+			TransitionIdSet bgr = transition_cache.find(actualTransitions[pos].second)->second;
 			for(size_t i = 0; i < rank; i++)
 			{
 				if (i != pos)
@@ -234,18 +221,18 @@ void BisimulationBase::calculatePostKey(
 					correction = -1;
 				}
 			}
-			post.emplace(statesFromTransitions(sml), statesFromTransitions(bgr));
+			post.emplace(statesFromTransitions(sml, smallerTrans), statesFromTransitions(bgr, biggerTrans));
 		}
 	}
 	return;
 }
 
-StateSet BisimulationBase::statesFromTransitions(TransitionSet &transitions)
+StateSet BisimulationBase::statesFromTransitions(TransitionIdSet &ids, TransitionVector &transitions)
 {
 	StateSet set;
-	for(auto transition : transitions)
+	for(auto id : ids)
 	{
-		set.insert(transition.GetParent());
+		set.insert(transitions[id].GetParent());
 	}
 	return set;
 }
@@ -291,20 +278,20 @@ TransitionSet BisimulationBase::getValidTransitionsAtPos(SymbolType symbol, Stat
 	return set;
 }
 
-void BisimulationBase::getValidTransitionsAtPosCached(const ExplicitTreeAutCore& automaton, StateSet &actual, SymbolType &symbol, size_t position)
+void BisimulationBase::getValidTransitionsAtPosCached(const TransitionVector& transitions, StateSet &actual, SymbolType &symbol, size_t position)
 {
 	transition_iter = transition_cache.find(transition_key);
 	if(transition_iter == transition_cache.end())
 	{
-		TransitionSet set;
-		for(auto transition : automaton)
+		TransitionIdSet set;
+		for(size_t i = 0; i < transitions.size(); i++)
 		{
-			if(transition.GetSymbol() == symbol && isMember(transition.GetChildren()[position], actual))
+			if(transitions[i].GetSymbol() == symbol && isMember(transitions[i].GetChildren()[position], actual))
 			{
-				set.insert(transition);
+				set.insert(i);
 			}
 		}
-		transition_cache.emplace(std::pair<std::string, TransitionSet>(transition_key, set));
+		transition_cache.emplace(std::pair<std::string, TransitionIdSet>(transition_key, set));
 		transition_iter = transition_cache.find(transition_key);
 	}
 }

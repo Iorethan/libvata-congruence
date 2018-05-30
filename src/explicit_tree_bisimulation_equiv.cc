@@ -260,7 +260,7 @@ bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruenc
 	getLeafCouples(knownPairs);
 	pruneRankedAlphabet();
 	todo = knownPairs;
-	
+
 	if(!areLeavesEquivalent(todo))
 	{
 		return false;
