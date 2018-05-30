@@ -125,7 +125,6 @@ namespace ExplicitTreeUpwardBisimulation{
 
 
 			bool isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set);
-			bool isExpandableBy(StateSet &expandee, StateSetCouple &expander);
 			bool isExpandableBy(StateSet &expandee, StateSet &expandee2, StateSetCouple &expander);
 
 	};

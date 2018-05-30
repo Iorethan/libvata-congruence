@@ -49,7 +49,7 @@ bool BisimulationEquivalence::check()
 {
 	StateSetCoupleSet done, todo, knownPairs;
 	StateSetCouple actual;
-	getLeafCouples(todo);
+	getLeafCouples(knownPairs);
 	pruneRankedAlphabet();
 	todo = knownPairs;
 

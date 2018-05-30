@@ -281,60 +281,6 @@ bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCo
 	return item.first == aux.first && item.second == aux.second;
 }
 
-// bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
-// {
-// 	if(isMember(item, set))
-// 	{
-// 		return true;
-// 	}
-
-// 	bool changed = true;
-// 	std::vector<bool> used_s(set.size(), false);
-// 	std::vector<bool> used_b(set.size(), false);
-// 	while(changed)
-// 	{
-// 		int i = 0;
-// 		changed = false;
-// 		for(auto set_item : set)
-// 		{
-// 			if(!used_s[i] && isExpandableBy(item.first, set_item))
-// 			{
-// 				changed = true;
-// 				used_s[i] = true;
-// 				for(auto si : set_item.first)
-// 				{
-// 					item.first.insert(si);
-// 				}
-// 				for(auto si : set_item.second)
-// 				{
-// 					item.first.insert(si);
-// 				}
-// 			}
-// 			if(!used_b[i] && isExpandableBy(item.second, set_item))
-// 			{
-// 				changed = true;
-// 				used_b[i] = true;
-// 				for(auto si : set_item.first)
-// 				{
-// 					item.second.insert(si);
-// 				}
-// 				for(auto si : set_item.second)
-// 				{
-// 					item.second.insert(si);
-// 				}
-// 			}
-// 			i++;
-// 		}
-// 	}
-// 	return item.first == item.second;
-// }
-
-bool BisimulationBase::isExpandableBy(StateSet &expandee, StateSetCouple &expander)
-{
-	return intersection(expandee, expander.first).size() != 0 ||
-		intersection(expandee, expander.second).size() != 0;
-}
-
 bool BisimulationBase::isExpandableBy(StateSet &expandee, StateSet &expandee2, StateSetCouple &expander)
 {
 	return intersection(expandee, expander.first).size() != 0 ||

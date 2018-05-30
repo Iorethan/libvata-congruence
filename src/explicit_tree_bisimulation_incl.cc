@@ -48,6 +48,7 @@ bool BisimulationInclusion::isCoupleFinalStateEquivalent(StateSetCouple &couple)
 	);
 	return set_s.empty() || !set_b.empty();
 }
+
 bool BisimulationInclusion::check()
 {
 	StateSetCoupleSet done, todo, knownPairs;
