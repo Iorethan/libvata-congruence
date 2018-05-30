@@ -111,7 +111,11 @@ bool ExplicitTreeAutCore::CheckInclusion(
 
 		case InclParam::CONGR_DEPTH_NOSIM:
 		{
-			ExplicitTreeUpwardBisimulation::BisimulationInclusion inclusion(smaller, bigger);
+			newSmaller = smaller;
+			newBigger = bigger;
+			states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+
+			ExplicitTreeUpwardBisimulation::BisimulationInclusion inclusion(newSmaller, newBigger);
 			return inclusion.check();
 		}
 
