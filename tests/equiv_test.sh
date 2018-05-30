@@ -17,8 +17,8 @@ METHODS=(
   "double-incl"
   # "bisim-up"
   # "bisim-up-cached"
-  # "congr-up"
-  "congr-up-cached"
+  "congr-up"
+  # "congr-up-cached"
   # "congr-up-cached-lax"
 )
 

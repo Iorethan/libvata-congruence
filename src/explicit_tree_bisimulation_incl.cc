@@ -18,12 +18,8 @@ using namespace ExplicitTreeUpwardBisimulation;
 BisimulationInclusion::BisimulationInclusion(
 	const ExplicitTreeAutCore&        _smaller,
 	const ExplicitTreeAutCore&        _bigger)
-	: BisimulationBase(_smaller, _bigger), expandable_cache()
+	: BisimulationBase(_smaller, _bigger)
 	{
-		// smaller = smaller.RemoveUnreachableStates();
-		// smaller = smaller.RemoveUselessStates();
-		// bigger = bigger.RemoveUnreachableStates();
-		// bigger = bigger.RemoveUselessStates();
 	}
 
 
@@ -110,120 +106,20 @@ bool BisimulationInclusion::isCongruenceClosureMember(StateSetCouple item, State
 	return item.first == aux.first && item.second == aux.second;
 }
 
-bool BisimulationInclusion::isCongruenceClosureMemberCachedStrict(StateSetCouple item, StateSetCoupleSet &set)
-{
-	if(isMember(item, set))
-	{
-		return true;
-	}
-
-	StateSetCouple aux;
-	bool changed = true;
-	std::vector<bool> used_s(set.size(), false);
-	std::vector<bool> used_b(set.size(), false);
-	while(changed)
-	{
-		int i = 0;
-		changed = false;
-		for(auto set_item : set)
-		{
-			if(!used_s[i] && isExpandableByCached(item.first, aux.second, set_item))
-			{
-				changed = true;
-				used_s[i] = true;
-				item.first = set_union(item.first, set_item.first);
-				aux.second = set_union(aux.second, set_item.second);
-			}
-			if(!used_b[i] && isExpandableByCached(aux.first, item.second, set_item))
-			{
-				changed = true;
-				used_b[i] = true;
-				aux.first = set_union(aux.first, set_item.first);
-				item.second = set_union(item.second, set_item.second);
-			}
-			i++;
-		}
-	}
-	return item.first == aux.first && item.second == aux.second;
-}
-
-bool BisimulationInclusion::isCongruenceClosureMemberCachedLax(StateSetCouple item, StateSetCoupleSet &set)
-{
-	if(isMember(item, set))
-	{
-		return true;
-	}
-
-	StateSetCouple aux;
-	bool changed = true;
-	std::vector<bool> used_s(set.size(), false);
-	while(changed)
-	{
-		unsigned i = 0;
-		changed = false;
-		for(auto set_item : set)
-		{
-			if(!used_s[i] && isExpandableByCached(item.first, item.second, set_item))
-			{
-				changed = true;smaller = smaller.RemoveUnreachableStates();
-				used_s[i] = true;
-				item.first = set_union(item.first, set_item.first);
-				item.second = set_union(item.second, set_item.second);
-			}
-			i++;
-		}
-	}
-	return item.first == item.second;
-}
-
 bool BisimulationInclusion::isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item)
 {
 	return intersection(first, item.first).size() != 0 ||
 		intersection(second, item.second).size() != 0;
 }
 
-bool BisimulationInclusion::isExpandableByCached(StateSet &first, StateSet &second, StateSetCouple &item)
+bool BisimulationInclusion::check()
 {
-	std::string key = "";
-	for(auto i : first)
-	{
-		key += std::to_string(i) + ",";
-	}
-	for(auto i : second)
-	{
-		key += std::to_string(i) + ",";
-	}
-	for(auto i : item.first)
-	{
-		key += std::to_string(i) + ",";
-	}
-	for(auto i : item.second)
-	{
-		key += std::to_string(i) + ",";
-	}
-	
-	std::unordered_map<std::string, bool>::iterator iter = expandable_cache.find(key);
-	if(iter != expandable_cache.end())
-	{
-		return iter->second;
-	}
-	else
-	{
-		bool result = intersection(first, item.first).size() != 0 || intersection(second, item.second).size() != 0;
-		expandable_cache.insert(std::pair<std::string, bool>(key, result));
-		return result;
-	}
-}
-
-bool BisimulationInclusion::check(const bool useCache, const bool	useCongruence, const bool beLax)
-{
-	StateSetCoupleSet all, done, todo, knownPairs;
+	StateSetCoupleSet done, todo, knownPairs;
 	StateSetCouple actual;
-	getLeafCouples(all);
+	getLeafCouples(knownPairs);
 	pruneRankedAlphabet();
-	todo = all;
-	knownPairs = all;
-	
+	todo = knownPairs;
+
 	if(!areLeavesEquivalent(todo))
 	{
 		return false;
@@ -239,44 +135,17 @@ bool BisimulationInclusion::check(const bool useCache, const bool	useCongruence,
 
 		for(auto symbol : rankedAlphabet)
 		{
-			if(useCache)
-			{
-				getPostCached(symbol, actual, done);
-			}
-			else
-			{
-				getPost(symbol, actual, done);
-			}
+			getPost(symbol, actual, done);
 			for(auto next : post)
 			{
 				if(!isCoupleFinalStateEquivalent(next))
 				{
 					return false;
 				}
-				
-				if(useCongruence)
+
+				if(!isCongruenceClosureMember(next, knownPairs))
 				{
-					if(useCache)
-					{
-						if(!isCongruenceClosureMemberCachedStrict(next, knownPairs))
-						{
-							todo.insert(next);
-						}
-					}
-					else
-					{
-						if(!isCongruenceClosureMember(next, knownPairs))
-						{
-							todo.insert(next);
-						}
-					}
-				}
-				else
-				{
-					if(!isMember(next, knownPairs))
-					{
-						todo.insert(next);
-					}
+					todo.insert(next);
 				}
 			}
 		}
