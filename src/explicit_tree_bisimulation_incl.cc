@@ -4,15 +4,13 @@
  *  Ondrej Vales <xvales03@fit.vutbr.cz>
  *
  *  Description:
- *    Equivalence using upward bisimulation up to congruence for explicitly
+ *    Inclusion using upward bisimulation up to congruence for explicitly
  *    represented tree automata.
  *
  *****************************************************************************/
 
-#include <iostream>
-#include "explicit_tree_bisimulation_up.hh"
+#include "explicit_tree_bisimulation_incl.hh"
 
-using namespace VATA;
 using namespace ExplicitTreeUpwardBisimulation;
 
 BisimulationInclusion::BisimulationInclusion(
@@ -21,19 +19,6 @@ BisimulationInclusion::BisimulationInclusion(
 	: BisimulationBase(_smaller, _bigger)
 	{
 	}
-
-
-bool BisimulationInclusion::areLeavesEquivalent(StateSetCoupleSet &todo)
-{
-	for(auto couple : todo)
-	{
-		if(!isCoupleFinalStateEquivalent(couple))
-		{
-			return false;
-		}
-	}
-	return true;
-}
 
 bool BisimulationInclusion::isCoupleFinalStateEquivalent(StateSetCouple &couple)
 {
@@ -63,55 +48,6 @@ bool BisimulationInclusion::isCoupleFinalStateEquivalent(StateSetCouple &couple)
 	);
 	return set_s.empty() || !set_b.empty();
 }
-
-StateSetCouple BisimulationInclusion::selectActual(StateSetCoupleSet& todo)
-{
-	return *(todo.begin());
-}
-
-bool BisimulationInclusion::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
-{
-	if(isMember(item, set))
-	{
-		return true;
-	}
-
-	StateSetCouple aux;
-	bool changed = true;
-	std::vector<bool> used_s(set.size(), false);
-	std::vector<bool> used_b(set.size(), false);
-	while(changed)
-	{
-		int i = 0;
-		changed = false;
-		for(auto set_item : set)
-		{
-			if(!used_s[i] && isExpandableBy(item.first, aux.second, set_item))
-			{
-				changed = true;
-				used_s[i] = true;
-				item.first = set_union(item.first, set_item.first);
-				aux.second = set_union(aux.second, set_item.second);
-			}
-			if(!used_b[i] && isExpandableBy(aux.first, item.second, set_item))
-			{
-				changed = true;
-				used_b[i] = true;
-				aux.first = set_union(aux.first, set_item.first);
-				item.second = set_union(item.second, set_item.second);
-			}
-			i++;
-		}
-	}
-	return item.first == aux.first && item.second == aux.second;
-}
-
-bool BisimulationInclusion::isExpandableBy(StateSet &first, StateSet &second, StateSetCouple &item)
-{
-	return intersection(first, item.first).size() != 0 ||
-		intersection(second, item.second).size() != 0;
-}
-
 bool BisimulationInclusion::check()
 {
 	StateSetCoupleSet done, todo, knownPairs;
@@ -127,8 +63,7 @@ bool BisimulationInclusion::check()
 
 	while(!todo.empty())
 	{
-		actual = selectActual(todo);
-
+		actual = *todo.begin();
 		todo.erase(actual);
 		done.insert(actual);
 		knownPairs.insert(actual);

@@ -17,7 +17,7 @@
 #include "tree_incl_down.hh"
 #include "down_tree_incl_fctor.hh"
 #include "down_tree_opt_incl_fctor.hh"
-#include "explicit_tree_bisimulation_up.hh"
+#include "explicit_tree_bisimulation_equiv.hh"
 
 #include <iostream>
 

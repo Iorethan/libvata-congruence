@@ -1,17 +1,15 @@
 /*****************************************************************************
  *  VATA Tree Automata Library
  *
- *  Copyright (c) 2018  Ondrej Vales <xvales03@fit.vutbr.cz>
+ *  Ondrej Vales <xvales03@fit.vutbr.cz>
  *
  *  Description:
  *    Bisimulation base for explicitly represented tree automata.
  *
  *****************************************************************************/
 
-#include "explicit_tree_bisimulation_up.hh"
-#include <unordered_map>
+#include "explicit_tree_bisimulation_base.hh"
 
-using namespace VATA;
 using namespace ExplicitTreeUpwardBisimulation;
 
 BisimulationBase::BisimulationBase(
@@ -54,23 +52,33 @@ void BisimulationBase::getLeafCouples(StateSetCoupleSet &set)
 		if(symbol.second == 0)
 		{
 			StateSetCouple c;
-			c.first = getStateSetBySymbol(symbol.first, smaller);
-			c.second = getStateSetBySymbol(symbol.first, bigger);
+			for(auto transition : smaller){
+				if(transition.GetSymbol() == symbol.first)
+				{
+					c.first.insert(transition.GetParent());
+				}
+			}
+			for(auto transition : bigger){
+				if(transition.GetSymbol() == symbol.first)
+				{
+					c.second.insert(transition.GetParent());
+				}
+			}
 			set.insert(c);
 		}
 	}
 }
 
-StateSet BisimulationBase::getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton)
+bool BisimulationBase::areLeavesEquivalent(StateSetCoupleSet &todo)
 {
-	StateSet tmp;
-	for(auto transition : automaton){
-		if(transition.GetSymbol() == symbol)
+	for(auto couple : todo)
+	{
+		if(!isCoupleFinalStateEquivalent(couple))
 		{
-			tmp.insert(transition.GetParent());
+			return false;
 		}
 	}
-	return tmp;
+	return true;
 }
 
 void BisimulationBase::getPost(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done)
@@ -221,4 +229,114 @@ StateSet BisimulationBase::statesFromTransitions(TransitionIdSet &ids, Transitio
 		set.insert(transitions[id].GetParent());
 	}
 	return set;
+}
+
+
+bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
+{
+	if(isMember(item, set))
+	{
+		return true;
+	}
+
+	StateSetCouple aux;
+	bool changed = true;
+	std::vector<bool> used_s(set.size(), false);
+	std::vector<bool> used_b(set.size(), false);
+	while(changed)
+	{
+		int i = 0;
+		changed = false;
+		for(auto set_item : set)
+		{
+			if(!used_s[i] && isExpandableBy(item.first, aux.second, set_item))
+			{
+				changed = true;
+				used_s[i] = true;
+				for(auto si : set_item.first)
+				{
+					item.first.insert(si);
+				}
+				for(auto si : set_item.second)
+				{
+					aux.second.insert(si);
+				}
+			}
+			if(!used_b[i] && isExpandableBy(aux.first, item.second, set_item))
+			{
+				changed = true;
+				used_b[i] = true;
+				for(auto si : set_item.first)
+				{
+					aux.first.insert(si);
+				}
+				for(auto si : set_item.second)
+				{
+					item.second.insert(si);
+				}
+			}
+			i++;
+		}
+	}
+	return item.first == aux.first && item.second == aux.second;
+}
+
+// bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
+// {
+// 	if(isMember(item, set))
+// 	{
+// 		return true;
+// 	}
+
+// 	bool changed = true;
+// 	std::vector<bool> used_s(set.size(), false);
+// 	std::vector<bool> used_b(set.size(), false);
+// 	while(changed)
+// 	{
+// 		int i = 0;
+// 		changed = false;
+// 		for(auto set_item : set)
+// 		{
+// 			if(!used_s[i] && isExpandableBy(item.first, set_item))
+// 			{
+// 				changed = true;
+// 				used_s[i] = true;
+// 				for(auto si : set_item.first)
+// 				{
+// 					item.first.insert(si);
+// 				}
+// 				for(auto si : set_item.second)
+// 				{
+// 					item.first.insert(si);
+// 				}
+// 			}
+// 			if(!used_b[i] && isExpandableBy(item.second, set_item))
+// 			{
+// 				changed = true;
+// 				used_b[i] = true;
+// 				for(auto si : set_item.first)
+// 				{
+// 					item.second.insert(si);
+// 				}
+// 				for(auto si : set_item.second)
+// 				{
+// 					item.second.insert(si);
+// 				}
+// 			}
+// 			i++;
+// 		}
+// 	}
+// 	return item.first == item.second;
+// }
+
+bool BisimulationBase::isExpandableBy(StateSet &expandee, StateSetCouple &expander)
+{
+	return intersection(expandee, expander.first).size() != 0 ||
+		intersection(expandee, expander.second).size() != 0;
+}
+
+bool BisimulationBase::isExpandableBy(StateSet &expandee, StateSet &expandee2, StateSetCouple &expander)
+{
+	return intersection(expandee, expander.first).size() != 0 ||
+		intersection(expandee2, expander.second).size() != 0;
 }
