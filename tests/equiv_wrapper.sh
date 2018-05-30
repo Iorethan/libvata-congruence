@@ -48,6 +48,10 @@ case "${OPERATION}" in
     ${VATA} -r expl -t equiv "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
+  double-incl-d)
+    ${VATA} -r expl -t equiv -o "dir=down" "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
   bisim-up)
     ${VATA} -r expl -t equiv -o "alg=bisimulation" "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"

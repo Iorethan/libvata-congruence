@@ -15,6 +15,7 @@ SCRIPTPATH=`dirname $SCRIPT`
 
 METHODS=( 
   "double-incl"
+  "double-incl-d"
   # "bisim-up"
   # "bisim-up-cached"
   "congr-up"

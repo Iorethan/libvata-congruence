@@ -14,7 +14,14 @@ def lineToInt(line):
         result.append(int(line[-1]))
     except:
         result.append(2)
-    return result
+    rs = []
+    if result[0] < result [1]:
+        rs.append(result[0])
+    else:
+        rs.append(result[1])
+    for i in range(len(result) - 2):
+        rs.append(result[i + 2])
+    return rs
 
 def countScore(data, tolerance = None):
     id1 = 0

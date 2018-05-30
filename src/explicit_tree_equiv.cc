@@ -49,6 +49,15 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 				Util::Identity(states));
 		}
 
+		case EqParam::ANTICHAINS_DOWN:
+		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+			return ExplicitUpwardInclusion::Check(newBigger, newSmaller,
+				Util::Identity(states)) &&
+                ExplicitUpwardInclusion::Check(newSmaller, newBigger,
+				Util::Identity(states));
+		}
+
 		case EqParam::CONGRUENCE_UP:
 		{
 			ExplicitTreeUpwardBisimulation::BisimulationEquivalence equivalence(newSmaller, newBigger);
