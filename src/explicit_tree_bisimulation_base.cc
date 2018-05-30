@@ -20,27 +20,21 @@ BisimulationBase::BisimulationBase(
 	: smaller(smaller), bigger(bigger), post(),
 		variant_key(), variant_cache(), variant_iter(),
 		transition_key(), transition_cache(), transition_iter()
-{}
-
-RankedAlphabet BisimulationBase::getRankedAlphabet()
 {
-	RankedAlphabet tmp;
+	RankedSymbol s;
 	for(auto transition : smaller){
-		RankedSymbol s;
 		s.first = transition.GetSymbol();
 		s.second = transition.GetChildren().size();
-		tmp.insert(s);
+		rankedAlphabet.insert(s);
 	}
 	for(auto transition : bigger){
-		RankedSymbol s;
 		s.first = transition.GetSymbol();
 		s.second = transition.GetChildren().size();
-		tmp.insert(s);
+		rankedAlphabet.insert(s);
 	}
-	return tmp;
 }
 
-void BisimulationBase::pruneRankedAlphabet(RankedAlphabet &rankedAlphabet)
+void BisimulationBase::pruneRankedAlphabet()
 {
 	for(auto symbol : rankedAlphabet)
 	{
@@ -51,9 +45,9 @@ void BisimulationBase::pruneRankedAlphabet(RankedAlphabet &rankedAlphabet)
 	}
 }
 
-void BisimulationBase::getLeafCouples(const RankedAlphabet &alphabet, StateSetCoupleSet &set)
+void BisimulationBase::getLeafCouples(StateSetCoupleSet &set)
 {
-	for(auto symbol : alphabet){
+	for(auto symbol : rankedAlphabet){
 		if(symbol.second == 0)
 		{
 			StateSetCouple c;

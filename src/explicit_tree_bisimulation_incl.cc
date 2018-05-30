@@ -217,11 +217,10 @@ bool BisimulationInclusion::isExpandableByCached(StateSet &first, StateSet &seco
 
 bool BisimulationInclusion::check(const bool useCache, const bool	useCongruence, const bool beLax)
 {
-	RankedAlphabet rankedAlphabet = getRankedAlphabet();
 	StateSetCoupleSet all, done, todo, knownPairs;
 	StateSetCouple actual;
-	getLeafCouples(rankedAlphabet, all);
-	pruneRankedAlphabet(rankedAlphabet);
+	getLeafCouples(all);
+	pruneRankedAlphabet();
 	todo = all;
 	knownPairs = all;
 	

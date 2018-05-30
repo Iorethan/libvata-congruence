@@ -115,6 +115,11 @@ namespace ExplicitTreeUpwardBisimulation{
 			ExplicitTreeAutCore smaller;
 			ExplicitTreeAutCore bigger;
 
+			TransitionVector smallerTrans;
+			TransitionVector biggerTrans;
+
+			RankedAlphabet rankedAlphabet;
+
 			StateSetCoupleSet post;
 			
 			size_t variant_key;
@@ -139,10 +144,9 @@ namespace ExplicitTreeUpwardBisimulation{
 				const bool					beLax
 			) = 0;
 
-			RankedAlphabet getRankedAlphabet();
-			static void pruneRankedAlphabet(RankedAlphabet &alphabet);
+			void pruneRankedAlphabet();
 
-			void getLeafCouples(const RankedAlphabet &alphabet, StateSetCoupleSet &set);
+			void getLeafCouples(StateSetCoupleSet &set);
 			static StateSet getStateSetBySymbol(SymbolType symbol, const ExplicitTreeAutCore& automaton);
 
 			void getPost(

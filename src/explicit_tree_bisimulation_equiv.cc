@@ -255,13 +255,11 @@ bool BisimulationEquivalence::isExpandableByCached(StateSet &first, StateSet &se
 
 bool BisimulationEquivalence::check(const bool useCache, const bool	useCongruence, const bool beLax)
 {
-	RankedAlphabet rankedAlphabet = getRankedAlphabet();
-	StateSetCoupleSet all, done, todo, knownPairs;
+	StateSetCoupleSet done, todo, knownPairs;
 	StateSetCouple actual;
-	getLeafCouples(rankedAlphabet, all);
-	pruneRankedAlphabet(rankedAlphabet);
-	todo = all;
-	knownPairs = all;
+	getLeafCouples(knownPairs);
+	pruneRankedAlphabet();
+	todo = knownPairs;
 	
 	if(!areLeavesEquivalent(todo))
 	{
