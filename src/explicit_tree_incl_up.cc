@@ -22,6 +22,7 @@
 #include "util/cache.hh"
 #include "util/cached_binary_op.hh"
 
+unsigned long pair_cnt2, true_cnt2;
 
 typedef VATA::ExplicitTreeAutCore::StateType SmallerType;
 typedef std::vector<VATA::ExplicitTreeAutCore::StateType> StateSet;
@@ -401,6 +402,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	while (!next.empty())
 	{
+		pair_cnt2++;
+
 		q = next.begin()->first;
 		Q = *next.begin()->second;
 

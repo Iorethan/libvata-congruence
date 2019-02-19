@@ -262,6 +262,8 @@ int performOperation(
 
 	if (args.showTime)
 	{
+		// std::cerr << pair_cnt1 + pair_cnt2 << "\n";
+		// std::cerr << (true_cnt1 + true_cnt2) / (double)(pair_cnt1 + pair_cnt2) << "\n";
 		std::cerr << std::chrono::duration_cast<std::chrono::nanoseconds>(opTime).count() * 1e-9 << "\n";
 	}
 

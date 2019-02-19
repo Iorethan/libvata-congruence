@@ -10,6 +10,8 @@
 
 #include "explicit_tree_bisimulation_base.hh"
 
+// unsigned long pair_cnt1, true_cnt1;
+
 using namespace ExplicitTreeUpwardBisimulation;
 
 BisimulationBase::BisimulationBase(
@@ -239,6 +241,8 @@ bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCo
 		return true;
 	}
 
+	// pair_cnt1++;
+
 	StateSetCouple aux;
 	bool changed = true;
 	std::vector<bool> used_s(set.size(), false);
@@ -278,7 +282,12 @@ bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCo
 			i++;
 		}
 	}
-	return item.first == aux.first && item.second == aux.second;
+	if (item.first == aux.first && item.second == aux.second)
+	{
+		// true_cnt1++;
+		return true;
+	}
+	return false;
 }
 
 bool BisimulationBase::isExpandableBy(StateSet &expandee, StateSet &expandee2, StateSetCouple &expander)

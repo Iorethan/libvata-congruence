@@ -17,6 +17,9 @@
 #include <cassert>
 #include <iostream>
 
+extern unsigned long pair_cnt1, pair_cnt2;
+extern unsigned long true_cnt1, true_cnt2;
+
 //#define NDEBUG
 
 #ifdef NDEBUG
