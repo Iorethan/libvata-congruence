@@ -14,6 +14,8 @@
 
 using namespace ExplicitTreeUpwardBisimulation;
 
+bool silent2 = false;
+
 BisimulationBase::BisimulationBase(
 	const ExplicitTreeAutCore&        smaller,
 	const ExplicitTreeAutCore&        bigger)
@@ -85,10 +87,10 @@ bool BisimulationBase::areLeavesEquivalent(StateSetCoupleSet &todo)
 
 void BisimulationBase::getPost(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done)
 {
-	std::string keySmall = std::to_string(symbol.first) + "_";
+	std::string keySmall = std::to_string(symbol.first) + "s_";
 	serialize(keySmall, actual.first);
 
-	std::string keyBig = std::to_string(symbol.first) + "_";
+	std::string keyBig = std::to_string(symbol.first) + "b_";
 	serialize(keyBig, actual.second);
 
 	TransitionSetKeyCoupleVector actualTransitions;
@@ -111,22 +113,21 @@ void BisimulationBase::getPost(RankedSymbol &symbol, StateSetCouple &actual, Sta
 	size_t i = 0;
 	for(auto couple : done)
 	{
-		keySmall = std::to_string(symbol.first) + "_";
+		keySmall = std::to_string(symbol.first) + "s_";
 		serialize(keySmall, couple.first);
 
-		keyBig = std::to_string(symbol.first) + "_";
+		keyBig = std::to_string(symbol.first) + "b_";
 		serialize(keyBig, couple.second);
 
 		for(size_t pos = 0; pos < symbol.second; pos++)
 		{
 			TransitionSetKeyCouple tmp;
-
 			transition_key = keySmall + std::to_string(pos);
-			getValidTransitionsAtPos(smallerTrans, actual.first, symbol.first, pos);
+			getValidTransitionsAtPos(smallerTrans, couple.first, symbol.first, pos);
 			tmp.first = transition_iter->first;
 
 			transition_key = keyBig + std::to_string(pos);
-			getValidTransitionsAtPos(biggerTrans, actual.second, symbol.first, pos);
+			getValidTransitionsAtPos(biggerTrans, couple.second, symbol.first, pos);
 			tmp.second = transition_iter->first;
 
 			doneTransitions[i].push_back(tmp);

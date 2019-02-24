@@ -92,18 +92,23 @@ void print_set_couple_set(StateSetCoupleSet set)
 	std::cout << set_couple_set_to_string(set) << std::endl;
 }
 
+bool silent = false;
+
 bool BisimulationEquivalence::check()
 {
 	StateSetCoupleSet done, todo, knownPairs, superPost;
 	StateSetCouple actual;
 	getLeafCouples(todo);
 	pruneRankedAlphabet();
-	
-	for(auto transition : smaller){
-		std::cout << smaller.ToString(transition) << std::endl;
-	}	
-	for(auto transition : bigger){
-		std::cout << bigger.ToString(transition) << std::endl;
+
+	if(!silent)
+	{	
+		for(auto transition : smaller){
+			std::cout << smaller.ToString(transition) << std::endl;
+		}	
+		for(auto transition : bigger){
+			std::cout << bigger.ToString(transition) << std::endl;
+		}
 	}
 
 	if(!areLeavesEquivalent(todo))
@@ -118,13 +123,17 @@ bool BisimulationEquivalence::check()
 		pair_cnt1++;
 		actual = *todo.begin();
 
-		std::cout << "STEP " << i << std::endl;
+		if(!silent)
+		{
+			std::cout << "STEP " << i << std::endl;
 
-		std::cout << "todo:";
-		print_set_couple_set(todo);
+			std::cout << "todo:";
+			print_set_couple_set(todo);
 
-		std::cout << "actual:";
-		print_set_couple(actual);
+			std::cout << "actual:";
+			print_set_couple(actual);
+		}
+
 		todo.erase(actual);
 		knownPairs.insert(actual);
 
@@ -133,24 +142,37 @@ bool BisimulationEquivalence::check()
 			return false;
 		}
 
-		if(isCongruenceClosureMember(actual, done))
+		// if(isCongruenceClosureMember(actual, done))
+		if(isMember(actual, done))
 		{
-			std::cout << "in closure, skipping: ";
-			print_set_couple(actual);
-			std::cout << std::endl << std::endl;
+			if(!silent)
+			{
+				std::cout << "in closure, skipping: ";
+				print_set_couple(actual);
+				std::cout << std::endl << std::endl;
+			}
+			done.insert(actual);
 			continue;
 		}
 		done.insert(actual);
 
-		std::cout << "done:";
-		print_set_couple_set(done);
+		if(!silent)
+		{
+			std::cout << "done:";
+			print_set_couple_set(done);
+		}
 
 		superPost.clear();
 		for(auto symbol : rankedAlphabet)
 		{
-			getPost(symbol, actual, done);
-			std::cout << symbol.first << ": ";
-			print_set_couple_set(post);
+			getPost(symbol, actual, knownPairs);
+
+			if(!silent)
+			{
+				std::cout << symbol.first << ": ";
+				print_set_couple_set(post);
+			}
+
 			for(auto next : post)
 			{
 				superPost.insert(next);
@@ -159,10 +181,12 @@ bool BisimulationEquivalence::check()
 			}
 		}
 
-		std::cout << "post:";
-		print_set_couple_set(superPost);
-
-		std::cout << std::endl << std::endl;
+		if(!silent)
+		{
+			std::cout << "post:";
+			print_set_couple_set(superPost);
+			std::cout << std::endl << std::endl;
+		}
 	}
 	return true;
 }
