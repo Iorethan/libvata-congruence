@@ -14,8 +14,6 @@
 
 using namespace ExplicitTreeUpwardBisimulation;
 
-bool silent2 = true;
-
 BisimulationBase::BisimulationBase(
 	const ExplicitTreeAutCore&        smaller,
 	const ExplicitTreeAutCore&        bigger)
@@ -233,69 +231,6 @@ StateSet BisimulationBase::statesFromTransitions(TransitionIdSet &ids, Transitio
 	}
 	return set;
 }
-
-
-// bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
-// {
-// 	if(isMember(item, set))
-// 	{
-// 		return true;
-// 	}
-
-// 	// pair_cnt1++;
-
-// 	StateSetCouple aux;
-// 	bool changed = true;
-// 	std::vector<bool> used_s(set.size(), false);
-// 	std::vector<bool> used_b(set.size(), false);
-// 	while(changed)
-// 	{
-// 		int i = 0;
-// 		changed = false;
-// 		for(auto set_item : set)
-// 		{
-// 			if(!used_s[i] && isExpandableBy(item.first, aux.second, set_item))
-// 			{
-// 				changed = true;
-// 				used_s[i] = true;
-// 				for(auto si : set_item.first)
-// 				{
-// 					item.first.insert(si);
-// 				}
-// 				for(auto si : set_item.second)
-// 				{
-// 					aux.second.insert(si);
-// 				}
-// 			}
-// 			if(!used_b[i] && isExpandableBy(aux.first, item.second, set_item))
-// 			{
-// 				changed = true;
-// 				used_b[i] = true;
-// 				for(auto si : set_item.first)
-// 				{
-// 					aux.first.insert(si);
-// 				}
-// 				for(auto si : set_item.second)
-// 				{
-// 					item.second.insert(si);
-// 				}
-// 			}
-// 			i++;
-// 		}
-// 	}
-// 	if (item.first == aux.first && item.second == aux.second)
-// 	{
-// 		// true_cnt1++;
-// 		return true;
-// 	}
-// 	return false;
-// }
-
-// bool BisimulationBase::isExpandableBy(StateSet &expandee, StateSet &expandee2, StateSetCouple &expander)
-// {
-// 	return intersection(expandee, expander.first).size() != 0 ||
-// 		intersection(expandee2, expander.second).size() != 0;
-// }
 
 bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
 {
