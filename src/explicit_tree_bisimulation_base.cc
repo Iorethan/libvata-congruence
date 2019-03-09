@@ -14,7 +14,7 @@
 
 using namespace ExplicitTreeUpwardBisimulation;
 
-bool silent2 = false;
+bool silent2 = true;
 
 BisimulationBase::BisimulationBase(
 	const ExplicitTreeAutCore&        smaller,
@@ -235,6 +235,68 @@ StateSet BisimulationBase::statesFromTransitions(TransitionIdSet &ids, Transitio
 }
 
 
+// bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
+// {
+// 	if(isMember(item, set))
+// 	{
+// 		return true;
+// 	}
+
+// 	// pair_cnt1++;
+
+// 	StateSetCouple aux;
+// 	bool changed = true;
+// 	std::vector<bool> used_s(set.size(), false);
+// 	std::vector<bool> used_b(set.size(), false);
+// 	while(changed)
+// 	{
+// 		int i = 0;
+// 		changed = false;
+// 		for(auto set_item : set)
+// 		{
+// 			if(!used_s[i] && isExpandableBy(item.first, aux.second, set_item))
+// 			{
+// 				changed = true;
+// 				used_s[i] = true;
+// 				for(auto si : set_item.first)
+// 				{
+// 					item.first.insert(si);
+// 				}
+// 				for(auto si : set_item.second)
+// 				{
+// 					aux.second.insert(si);
+// 				}
+// 			}
+// 			if(!used_b[i] && isExpandableBy(aux.first, item.second, set_item))
+// 			{
+// 				changed = true;
+// 				used_b[i] = true;
+// 				for(auto si : set_item.first)
+// 				{
+// 					aux.first.insert(si);
+// 				}
+// 				for(auto si : set_item.second)
+// 				{
+// 					item.second.insert(si);
+// 				}
+// 			}
+// 			i++;
+// 		}
+// 	}
+// 	if (item.first == aux.first && item.second == aux.second)
+// 	{
+// 		// true_cnt1++;
+// 		return true;
+// 	}
+// 	return false;
+// }
+
+// bool BisimulationBase::isExpandableBy(StateSet &expandee, StateSet &expandee2, StateSetCouple &expander)
+// {
+// 	return intersection(expandee, expander.first).size() != 0 ||
+// 		intersection(expandee2, expander.second).size() != 0;
+// }
+
 bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
 {
 	if(isMember(item, set))
@@ -244,7 +306,6 @@ bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCo
 
 	// pair_cnt1++;
 
-	StateSetCouple aux;
 	bool changed = true;
 	std::vector<bool> used_s(set.size(), false);
 	std::vector<bool> used_b(set.size(), false);
@@ -254,36 +315,36 @@ bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCo
 		changed = false;
 		for(auto set_item : set)
 		{
-			if(!used_s[i] && isExpandableBy(item.first, aux.second, set_item))
+			if(!used_s[i])
 			{
-				changed = true;
-				used_s[i] = true;
-				for(auto si : set_item.first)
+				Expandable exp = isExpandableBy(item.first, set_item);
+				if(exp == First || exp == Second)
 				{
-					item.first.insert(si);
-				}
-				for(auto si : set_item.second)
-				{
-					aux.second.insert(si);
+					changed = true;
+					used_s[i] = true;
+					for(auto si : (exp == First ? (set_item.first) : (set_item.second)))
+					{
+						item.first.insert(si);
+					}
 				}
 			}
-			if(!used_b[i] && isExpandableBy(aux.first, item.second, set_item))
+			if(!used_b[i])
 			{
-				changed = true;
-				used_b[i] = true;
-				for(auto si : set_item.first)
+				Expandable exp = isExpandableBy(item.second, set_item);
+				if(exp == First || exp == Second)
 				{
-					aux.first.insert(si);
-				}
-				for(auto si : set_item.second)
-				{
-					item.second.insert(si);
+					changed = true;
+					used_b[i] = true;
+					for(auto si : (exp == First ? (set_item.first) : (set_item.second)))
+					{
+						item.second.insert(si);
+					}
 				}
 			}
 			i++;
 		}
 	}
-	if (item.first == aux.first && item.second == aux.second)
+	if (item.first == item.second)
 	{
 		// true_cnt1++;
 		return true;
@@ -291,8 +352,15 @@ bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCo
 	return false;
 }
 
-bool BisimulationBase::isExpandableBy(StateSet &expandee, StateSet &expandee2, StateSetCouple &expander)
+Expandable BisimulationBase::isExpandableBy(StateSet &expandee, StateSetCouple &expander)
 {
-	return intersection(expandee, expander.first).size() != 0 ||
-		intersection(expandee2, expander.second).size() != 0;
+	bool first_subset = isSubset(expander.first, expandee);
+	bool second_subset = isSubset(expander.second, expandee);
+	if (first_subset && second_subset)
+		return Both;
+	if (first_subset)
+		return Second;
+	if (second_subset)
+		return First;
+	return None;
 }

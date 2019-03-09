@@ -16,10 +16,12 @@ unsigned long pair_cnt1, true_cnt1;
 using namespace VATA;
 using namespace ExplicitTreeUpwardBisimulation;
 
+bool silent = true;
+
 BisimulationEquivalence::BisimulationEquivalence(
-	const ExplicitTreeAutCore&        _smaller,
-	const ExplicitTreeAutCore&        _bigger)
-	: BisimulationBase(_smaller, _bigger)
+	const ExplicitTreeAutCore&        smaller,
+	const ExplicitTreeAutCore&        bigger)
+	: BisimulationBase(smaller, bigger)
 	{
 	}
 
@@ -58,14 +60,14 @@ std::string set_to_string(StateSet set)
 	{
 		result.pop_back();
 	}
-	return "(" + result + ")";
+	return "{" + result + "}";
 }
 
 std::string set_couple_to_string(StateSetCouple couple)
 {
 	std::string first = set_to_string(couple.first);
 	std::string second = set_to_string(couple.second);
-	return "[" + first + "," + second + "]";
+	return "(" + first + "," + second + ")";
 }
 
 std::string set_couple_set_to_string(StateSetCoupleSet set)
@@ -73,13 +75,9 @@ std::string set_couple_set_to_string(StateSetCoupleSet set)
 	std::string result = "";
 	for (auto couple : set)
 	{
-		result += set_couple_to_string(couple) + ",";
+		result += "\t" + set_couple_to_string(couple) + "\n";
 	}
-	if(result.length() > 0)
-	{
-		result.pop_back();
-	}
-	return "{" + result + "}";
+	return "[\n" + result + "]";
 }
 
 void print_set_couple(StateSetCouple couple)
@@ -92,8 +90,6 @@ void print_set_couple_set(StateSetCoupleSet set)
 	std::cout << set_couple_set_to_string(set) << std::endl;
 }
 
-bool silent = false;
-
 bool BisimulationEquivalence::check()
 {
 	StateSetCoupleSet done, todo, knownPairs, superPost;
@@ -105,7 +101,8 @@ bool BisimulationEquivalence::check()
 	{	
 		for(auto transition : smaller){
 			std::cout << smaller.ToString(transition) << std::endl;
-		}	
+		}
+		std::cout << std::endl;
 		for(auto transition : bigger){
 			std::cout << bigger.ToString(transition) << std::endl;
 		}
@@ -142,8 +139,8 @@ bool BisimulationEquivalence::check()
 			return false;
 		}
 
-		// if(isCongruenceClosureMember(actual, done))
-		if(isMember(actual, done))
+		if(isCongruenceClosureMember(actual, done))
+		// if(isMember(actual, done))
 		{
 			if(!silent)
 			{
@@ -169,7 +166,8 @@ bool BisimulationEquivalence::check()
 
 			if(!silent)
 			{
-				std::cout << symbol.first << ": ";
+				std::string symbol_name = (*(smaller.GetAlphabet())->GetSymbolBackTransl())(symbol.first).symbolStr;
+				std::cout << symbol_name << ": ";
 				print_set_couple_set(post);
 			}
 

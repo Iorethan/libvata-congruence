@@ -46,6 +46,13 @@ namespace ExplicitTreeUpwardBisimulation{
 	class BisimulationBase;
 	class BisimulationEquivalence;
 
+	enum Expandable {
+		None,
+		First,
+		Second,
+		Both
+	};
+
 	
 	template <typename type> bool isMember(type item, std::set<type> &set)
 	{
@@ -55,13 +62,27 @@ namespace ExplicitTreeUpwardBisimulation{
 	template <typename type> std::set<type> intersection(std::set<type> &left, std::set<type> &right)
 	{
 		std::set<type> intersect;
-		set_intersection(	left.begin(),
-							left.end(),
-							right.begin(),
-							right.end(),
-							std::inserter(intersect, intersect.begin())
-						);
+		set_intersection(
+			left.begin(),
+			left.end(),
+			right.begin(),
+			right.end(),
+			std::inserter(intersect, intersect.begin())
+		);
 		return intersect;
+	}
+
+	template <typename type> bool isSubset(std::set<type> &left, std::set<type> &right)
+	{
+		std::set<type> difference;
+		set_difference(
+			left.begin(),
+			left.end(),
+			right.begin(),
+			right.end(),
+			std::inserter(difference, difference.begin())
+		);
+		return difference.size() == 0;
 	}
 
 	class BisimulationBase{	
@@ -125,7 +146,7 @@ namespace ExplicitTreeUpwardBisimulation{
 
 
 			bool isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set);
-			bool isExpandableBy(StateSet &expandee, StateSet &expandee2, StateSetCouple &expander);
+			Expandable isExpandableBy(StateSet &expandee, StateSetCouple &expander);
 
 	};
 }
