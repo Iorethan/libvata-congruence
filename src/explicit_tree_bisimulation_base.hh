@@ -27,21 +27,34 @@ namespace ExplicitTreeUpwardBisimulation{
 	typedef std::pair <StateSet, StateSet> StateSetCouple;
 	typedef std::set <StateSetCouple> StateSetCoupleSet;
 
-	typedef std::vector<Transition> TransitionVector;
-	typedef std::set<size_t> TransitionIdSet;
-
-	typedef std::string TransitionSetKey;
-	typedef std::pair<TransitionSetKey, TransitionSetKey> TransitionSetKeyCouple;
-	typedef std::vector<TransitionSetKeyCouple> TransitionSetKeyCoupleVector;
-	typedef std::vector<TransitionSetKeyCoupleVector> TransitionSetKeyCouple2DVector;
-
 	typedef std::vector<bool> Bitmap;
 
 	typedef std::pair<SymbolType, size_t> RankedSymbol;
 	typedef std::set<RankedSymbol> RankedAlphabet;
 
-	typedef std::vector<size_t> PostVariant;
-	typedef std::vector<PostVariant> PostVariantVector;
+	// (symbol, position, state)
+	typedef std::tuple<size_t, size_t, size_t> PostKey;
+
+	struct PostKeyHash
+	{
+		std::size_t operator () (const std::tuple<size_t, size_t, size_t> &p) const
+		{
+			return std::get<1>(p) + (std::get<0>(p) << 4) + (std::get<2>(p) << 16);
+		}
+	};
+	
+	struct SetPostKeyHash
+	{
+		std::size_t operator () (const StateSet &p) const
+		{
+			size_t hash = 0;
+			for(auto item : p)
+			{
+				boost::hash_combine(hash, item);
+			}
+			return hash;
+		}
+	};
 
 	class BisimulationBase;
 	class BisimulationEquivalence;
@@ -52,7 +65,6 @@ namespace ExplicitTreeUpwardBisimulation{
 		Second,
 		Both
 	};
-
 	
 	template <typename type> bool isMember(type item, std::set<type> &set)
 	{
@@ -90,21 +102,15 @@ namespace ExplicitTreeUpwardBisimulation{
 			ExplicitTreeAutCore smaller;
 			ExplicitTreeAutCore bigger;
 
+			RankedAlphabet rankedAlphabet;
+
 			StateSetCoupleSet post;
 
-			TransitionVector smallerTrans;
-			TransitionVector biggerTrans;
-
-			RankedAlphabet rankedAlphabet;
-			
 			// cache
-			size_t variant_key;
-			std::unordered_map<size_t, PostVariantVector> variant_cache;
-			std::unordered_map<size_t, PostVariantVector>::iterator variant_iter;
-
-			std::string transition_key;
-			std::unordered_map<std::string, TransitionIdSet> transition_cache;
-			std::unordered_map<std::string, TransitionIdSet>::iterator transition_iter;
+			PostKey successors_key;
+			std::unordered_map<PostKey, StateSet, PostKeyHash>::iterator successors_iter;
+			std::unordered_map<PostKey, StateSet, PostKeyHash> s_successors_cache;
+			std::unordered_map<PostKey, StateSet, PostKeyHash> b_successors_cache;
 
 		public:
 			BisimulationBase(
@@ -122,28 +128,8 @@ namespace ExplicitTreeUpwardBisimulation{
 			bool areLeavesEquivalent(StateSetCoupleSet &todo);
 			virtual bool isCoupleFinalStateEquivalent(StateSetCouple &couple) = 0;
 
-			void getPost(
-				RankedSymbol &symbol,
-				StateSetCouple &actual,
-				StateSetCoupleSet &done
-			);
-
-			void serialize(std::string &key, const StateSet &set);
-			void getValidTransitionsAtPos(
-				const TransitionVector& automaton,
-				StateSet &actual,
-				SymbolType &symbol,
-				size_t position
-			);
-			void calculatePost(
-				TransitionSetKeyCoupleVector &actualTransitions,
-				TransitionSetKeyCouple2DVector &doneTransitions,
-				size_t rank
-			);
-
-			void generatePostVariants(size_t n, size_t k);
-			static StateSet statesFromTransitions(TransitionIdSet &ids, TransitionVector &transitions);
-
+			void getPost(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done);
+			void getPostAtFixedPos(StateSetCouple &next, StateSetCouple &pair);
 
 			bool isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set);
 			Expandable isExpandableBy(StateSet &expandee, StateSetCouple &expander);

@@ -17,23 +17,56 @@ using namespace ExplicitTreeUpwardBisimulation;
 BisimulationBase::BisimulationBase(
 	const ExplicitTreeAutCore&        smaller,
 	const ExplicitTreeAutCore&        bigger)
-	: smaller(smaller), bigger(bigger), post(),
-		smallerTrans(), biggerTrans(), rankedAlphabet(),
-		variant_key(), variant_cache(), variant_iter(),
-		transition_key(), transition_cache(), transition_iter()
+	: smaller(smaller), bigger(bigger),
+		rankedAlphabet(), post(),
+		successors_key(), successors_iter(),
+		s_successors_cache(), b_successors_cache()
 {
 	RankedSymbol s;
-	for(auto transition : smaller){
-		smallerTrans.push_back(transition);
+	for(auto transition : smaller)
+	{
 		s.first = transition.GetSymbol();
 		s.second = transition.GetChildren().size();
 		rankedAlphabet.insert(s);
+		
+		std::get<0>(successors_key) =  s.first;	
+		for(size_t pos = 0; pos < s.second; pos++)
+		{
+			std::get<1>(successors_key) =  pos;
+			std::get<2>(successors_key) =  transition.GetChildren()[pos];
+			successors_iter = s_successors_cache.find(successors_key);
+			if(successors_iter == s_successors_cache.end())
+			{
+				StateSet set;
+				s_successors_cache.emplace(successors_key, set);
+				successors_iter = s_successors_cache.find(successors_key);
+			}
+			if (!isMember(transition.GetParent(), successors_iter->second))
+				successors_iter->second.insert(transition.GetParent());
+		}
 	}
-	for(auto transition : bigger){
-		biggerTrans.push_back(transition);
+	for(auto transition : bigger)
+	{
 		s.first = transition.GetSymbol();
 		s.second = transition.GetChildren().size();
 		rankedAlphabet.insert(s);
+		
+		std::get<0>(successors_key) =  s.first;	
+		for(size_t pos = 0; pos < s.second; pos++)
+		{
+			std::get<1>(successors_key) =  pos;
+			std::get<2>(successors_key) =  transition.GetChildren()[pos];
+
+			successors_iter = b_successors_cache.find(successors_key);
+			if(successors_iter == b_successors_cache.end())
+			{
+				StateSet set;
+				b_successors_cache.emplace(successors_key, set);
+				successors_iter = b_successors_cache.find(successors_key);
+			}
+			if (!isMember(transition.GetParent(), successors_iter->second))
+				successors_iter->second.insert(transition.GetParent());
+		}
 	}
 }
 
@@ -85,151 +118,68 @@ bool BisimulationBase::areLeavesEquivalent(StateSetCoupleSet &todo)
 
 void BisimulationBase::getPost(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done)
 {
-	std::string keySmall = std::to_string(symbol.first) + "s_";
-	serialize(keySmall, actual.first);
-
-	std::string keyBig = std::to_string(symbol.first) + "b_";
-	serialize(keyBig, actual.second);
-
-	TransitionSetKeyCoupleVector actualTransitions;
-	for(size_t pos = 0; pos < symbol.second; pos++)
-	{
-		TransitionSetKeyCouple tmp;
-
-		transition_key = keySmall + std::to_string(pos);
-		getValidTransitionsAtPos(smallerTrans, actual.first, symbol.first, pos);
-		tmp.first = transition_iter->first;
-
-		transition_key = keyBig + std::to_string(pos);
-		getValidTransitionsAtPos(biggerTrans, actual.second, symbol.first, pos);
-		tmp.second =  transition_iter->first;
-
-		actualTransitions.push_back(tmp);
-	}
-
-	TransitionSetKeyCouple2DVector doneTransitions(done.size());
-	size_t i = 0;
-	for(auto couple : done)
-	{
-		keySmall = std::to_string(symbol.first) + "s_";
-		serialize(keySmall, couple.first);
-
-		keyBig = std::to_string(symbol.first) + "b_";
-		serialize(keyBig, couple.second);
-
-		for(size_t pos = 0; pos < symbol.second; pos++)
-		{
-			TransitionSetKeyCouple tmp;
-			transition_key = keySmall + std::to_string(pos);
-			getValidTransitionsAtPos(smallerTrans, couple.first, symbol.first, pos);
-			tmp.first = transition_iter->first;
-
-			transition_key = keyBig + std::to_string(pos);
-			getValidTransitionsAtPos(biggerTrans, couple.second, symbol.first, pos);
-			tmp.second = transition_iter->first;
-
-			doneTransitions[i].push_back(tmp);
-		}
-		i++;
-	}
-	calculatePost(actualTransitions, doneTransitions, symbol.second);
-	return;
-}
-
-void BisimulationBase::serialize(std::string &key, const StateSet &set)
-{		
-	for (auto item : set)
-	{
-		key += std::to_string(item) + ",";
-	}
-}
-
-void BisimulationBase::getValidTransitionsAtPos(const TransitionVector& transitions, StateSet &actual, SymbolType &symbol, size_t position)
-{
-	transition_iter = transition_cache.find(transition_key);
-	if(transition_iter == transition_cache.end())
-	{
-		TransitionIdSet set;
-		for(size_t i = 0; i < transitions.size(); i++)
-		{
-			if(transitions[i].GetSymbol() == symbol && isMember(transitions[i].GetChildren()[position], actual))
-			{
-				set.insert(i);
-			}
-		}
-		transition_cache.emplace(std::pair<std::string, TransitionIdSet>(transition_key, set));
-		transition_iter = transition_cache.find(transition_key);
-	}
-}
-
-void BisimulationBase::calculatePost(
-	TransitionSetKeyCoupleVector &actualTransitions,
-	TransitionSetKeyCouple2DVector &doneTransitions,
-	size_t rank)
-{
 	post.clear();
-	generatePostVariants(rank - 1, doneTransitions.size());
-	for(size_t pos = 0; pos < rank; pos++)
+	std::get<0>(successors_key) = symbol.first;
+	StateSetCouple next;
+	if(symbol.second == 1)
 	{
-		for(auto variant : variant_iter->second)
-		{
-			int correction = 0;
-			TransitionIdSet sml = transition_cache.find(actualTransitions[pos].first)->second;
-			TransitionIdSet bgr = transition_cache.find(actualTransitions[pos].second)->second;
-			for(size_t i = 0; i < rank; i++)
-			{
-				if (i != pos)
-				{
-					sml = intersection(sml, transition_cache.find(doneTransitions[variant[i + correction]][i].first)->second);
-					bgr = intersection(bgr, transition_cache.find(doneTransitions[variant[i + correction]][i].second)->second);
-				}
-				else
-				{
-					correction = -1;
-				}
-			}
-			post.emplace(statesFromTransitions(sml, smallerTrans), statesFromTransitions(bgr, biggerTrans));
-		}
+		std::get<1>(successors_key) = 0;
+		getPostAtFixedPos(next, actual);
+		post.emplace(next);
 	}
-	return;
-}
-
-void BisimulationBase::generatePostVariants(size_t n, size_t k)
-{
-	variant_key = k * 1000 + n;
-	variant_iter = variant_cache.find(variant_key);
-	if(variant_iter == variant_cache.end())
+	else if (symbol.second == 2)
 	{
-		PostVariantVector current, prev;
-		PostVariant subresult;
-		prev.push_back(subresult);
-		for(size_t i = 0; i < n; i++)
+		StateSet empty;
+		//actual at first position
+		std::get<1>(successors_key) = 0;
+		getPostAtFixedPos(next, actual);
+		for(auto pair : done)
 		{
-			for(size_t j = 0; j < k; j++)
-			{
-				for(auto item : prev)
-				{
-					std::vector<size_t> tmp = item;
-					tmp.push_back(j);
-					current.push_back(tmp);
-				}
-			}
-			prev = current;
-			current.clear();
+			StateSetCouple context;
+			//context at second position
+			std::get<1>(successors_key) = 1;
+			getPostAtFixedPos(context, pair);
+			context.first = intersection(context.first, next.first);
+			context.second = intersection(context.second, next.second);
+			post.emplace(context);
 		}
-		variant_cache.emplace(std::pair<size_t, PostVariantVector>(variant_key, prev));
-		variant_iter = variant_cache.find(variant_key);
+
+		next.first.clear();
+		next.second.clear();
+		//actual at second position
+		std::get<1>(successors_key) = 1;
+		getPostAtFixedPos(next, actual);
+		for(auto pair : done)
+		{
+			StateSetCouple context;
+			//context at first position
+			std::get<1>(successors_key) = 0;
+			getPostAtFixedPos(context, pair);
+			context.first = intersection(context.first, next.first);
+			context.second = intersection(context.second, next.second);
+			post.emplace(context);
+		}
 	}
 }
 
-StateSet BisimulationBase::statesFromTransitions(TransitionIdSet &ids, TransitionVector &transitions)
+void BisimulationBase::getPostAtFixedPos(StateSetCouple &next, StateSetCouple &pair)
 {
-	StateSet set;
-	for(auto id : ids)
+	for(auto state : pair.first)
 	{
-		set.insert(transitions[id].GetParent());
+		std::get<2>(successors_key) = state;
+		successors_iter = s_successors_cache.find(successors_key); 
+		if(successors_iter != s_successors_cache.end())
+			for (auto parent: successors_iter->second)
+				next.first.insert(parent);
 	}
-	return set;
+	for(auto state : pair.second)
+	{
+		std::get<2>(successors_key) = state;
+		successors_iter = b_successors_cache.find(successors_key); 
+		if(successors_iter != b_successors_cache.end())
+			for (auto parent: successors_iter->second)
+				next.second.insert(parent);
+	}
 }
 
 bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
