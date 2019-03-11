@@ -19,6 +19,9 @@
 namespace ExplicitTreeUpwardBisimulation{ 
 	using namespace VATA;
 
+	struct TodoComparator;
+	struct InputSize;
+
 	using StateType      = ExplicitTreeAutCore::StateType;
 	using SymbolType     = ExplicitTreeAutCore::SymbolType;
 	using Transition	 = ExplicitTreeAut::Transition;
@@ -26,6 +29,9 @@ namespace ExplicitTreeUpwardBisimulation{
 	typedef std::set <StateType> StateSet;
 	typedef std::pair <StateSet, StateSet> StateSetCouple;
 	typedef std::set <StateSetCouple> StateSetCoupleSet;
+	typedef std::set <StateSetCouple, TodoComparator> TodoSet;
+
+	typedef StateSetCoupleSet::iterator StateSetCoupleIter;
 
 	typedef std::vector<bool> Bitmap;
 
@@ -34,6 +40,22 @@ namespace ExplicitTreeUpwardBisimulation{
 
 	// (symbol, position, state)
 	typedef std::tuple<size_t, size_t, size_t> PostKey;
+
+	struct InputSize {
+		size_t alphabet;
+		size_t arity;
+		size_t states;
+	};
+
+	struct TodoComparator {
+		bool operator() (const StateSetCouple& lhs, const StateSetCouple& rhs) const {
+			if (lhs.first.size() + lhs.second.size() < rhs.first.size() + rhs.second.size())
+				return true;
+			if (lhs.first.size() + lhs.second.size() > rhs.first.size() + rhs.second.size())
+				return false;
+			return lhs < rhs;
+		}
+	};
 
 	struct PostKeyHash
 	{
@@ -84,7 +106,7 @@ namespace ExplicitTreeUpwardBisimulation{
 		return intersect;
 	}
 
-	template <typename type> bool isSubset(std::set<type> &left, std::set<type> &right)
+	template <typename type> bool isSubset(const std::set<type> &left, const std::set<type> &right)
 	{
 		std::set<type> difference;
 		set_difference(
@@ -97,20 +119,28 @@ namespace ExplicitTreeUpwardBisimulation{
 		return difference.size() == 0;
 	}
 
+GCC_DIAG_OFF(effc++)
 	class BisimulationBase{	
+GCC_DIAG_ON(effc++)
 		protected:
 			ExplicitTreeAutCore smaller;
 			ExplicitTreeAutCore bigger;
 
-			RankedAlphabet rankedAlphabet;
+			RankedAlphabet ranked_alphabet;
 
-			StateSetCoupleSet post;
+			StateSetCouple actual;
 
+			TodoSet todo;
+			StateSetCoupleSet done, knownPairs;
+
+			InputSize input_size;
+			StateSet*** successors;
+			
 			// cache
-			PostKey successors_key;
-			std::unordered_map<PostKey, StateSet, PostKeyHash>::iterator successors_iter;
-			std::unordered_map<PostKey, StateSet, PostKeyHash> s_successors_cache;
-			std::unordered_map<PostKey, StateSet, PostKeyHash> b_successors_cache;
+			// PostKey successors_key;
+			// std::unordered_map<PostKey, StateSet, PostKeyHash>::iterator successors_iter;
+			// std::unordered_map<PostKey, StateSet, PostKeyHash> s_successors_cache;
+			// std::unordered_map<PostKey, StateSet, PostKeyHash> b_successors_cache;
 
 		public:
 			BisimulationBase(
@@ -118,21 +148,24 @@ namespace ExplicitTreeUpwardBisimulation{
 				const ExplicitTreeAutCore&        bigger
 			);
 			
-			virtual ~BisimulationBase() {}
+			virtual ~BisimulationBase();
 			
 			virtual bool check() = 0;
 
 			void pruneRankedAlphabet();
 
-			void getLeafCouples(StateSetCoupleSet &set);
-			bool areLeavesEquivalent(StateSetCoupleSet &todo);
+			void getLeafCouples();
+			bool areLeavesEquivalent();
 			virtual bool isCoupleFinalStateEquivalent(StateSetCouple &couple) = 0;
 
-			void getPost(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done);
-			void getPostAtFixedPos(StateSetCouple &next, StateSetCouple &pair);
+			bool getPost(RankedSymbol &symbol);
+			void getPostAtFixedPos(StateSetCouple &next, StateSetCouple &pair, size_t symbol, size_t pos);
 
-			bool isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set);
+			bool todoInsert(StateSetCouple &next);
+
+			bool isCongruenceClosureMember(StateSetCouple item);
 			Expandable isExpandableBy(StateSet &expandee, StateSetCouple &expander);
+			Expandable isExpandableBy(StateSet &expandee, StateSetCoupleIter expander);
 
 	};
 }

@@ -18,93 +18,107 @@ BisimulationBase::BisimulationBase(
 	const ExplicitTreeAutCore&        smaller,
 	const ExplicitTreeAutCore&        bigger)
 	: smaller(smaller), bigger(bigger),
-		rankedAlphabet(), post(),
-		successors_key(), successors_iter(),
-		s_successors_cache(), b_successors_cache()
+		ranked_alphabet(), actual(),
+		todo(), done(), knownPairs(),
+		input_size(), successors()
 {
-	RankedSymbol s;
 	for(auto transition : smaller)
 	{
-		s.first = transition.GetSymbol();
-		s.second = transition.GetChildren().size();
-		rankedAlphabet.insert(s);
-		
-		std::get<0>(successors_key) =  s.first;	
-		for(size_t pos = 0; pos < s.second; pos++)
+		ranked_alphabet.insert(std::make_pair(transition.GetSymbol(), transition.GetChildrenSize()));
+		if(transition.GetSymbol() > input_size.alphabet)
+			input_size.alphabet = transition.GetSymbol();
+		if(transition.GetChildrenSize() > input_size.arity)
+			input_size.arity = transition.GetChildrenSize();
+		if(transition.GetParent() > input_size.states)
+			input_size.states = transition.GetParent();
+		for(auto state : transition.GetChildren())
+			if(state > input_size.states)
+				input_size.states = state;
+	}
+	for(auto transition : bigger)
+	{
+		ranked_alphabet.insert(std::make_pair(transition.GetSymbol(), transition.GetChildrenSize()));
+		if(transition.GetSymbol() > input_size.alphabet)
+			input_size.alphabet = transition.GetSymbol();
+		if(transition.GetChildrenSize() > input_size.arity)
+			input_size.arity = transition.GetChildrenSize();
+		if(transition.GetParent() > input_size.states)
+			input_size.states = transition.GetParent();
+		for(auto state : transition.GetChildren())
+			if(state > input_size.states)
+				input_size.states = state;
+	}
+	input_size.alphabet++;
+	input_size.states++;
+
+	successors = new StateSet **[input_size.alphabet]();
+    for (size_t i = 0; i < input_size.alphabet; i++)
+    {
+        successors[i] = new StateSet *[input_size.arity]();
+        for (size_t j = 0; j < input_size.arity; j++)
+            successors[i][j] = new StateSet [input_size.states]();
+    }
+
+	for(auto transition : smaller)
+	{
+		if (transition.GetChildrenSize() == 0)
 		{
-			std::get<1>(successors_key) =  pos;
-			std::get<2>(successors_key) =  transition.GetChildren()[pos];
-			successors_iter = s_successors_cache.find(successors_key);
-			if(successors_iter == s_successors_cache.end())
-			{
-				StateSet set;
-				s_successors_cache.emplace(successors_key, set);
-				successors_iter = s_successors_cache.find(successors_key);
-			}
-			if (!isMember(transition.GetParent(), successors_iter->second))
-				successors_iter->second.insert(transition.GetParent());
+			successors[transition.GetSymbol()][0][0].insert(transition.GetParent());
+		}
+		for(size_t pos = 0; pos < transition.GetChildrenSize(); pos++)
+		{
+			successors[transition.GetSymbol()][pos][transition.GetChildren()[pos]].insert(transition.GetParent());
 		}
 	}
 	for(auto transition : bigger)
 	{
-		s.first = transition.GetSymbol();
-		s.second = transition.GetChildren().size();
-		rankedAlphabet.insert(s);
-		
-		std::get<0>(successors_key) =  s.first;	
-		for(size_t pos = 0; pos < s.second; pos++)
+		if (transition.GetChildrenSize() == 0)
 		{
-			std::get<1>(successors_key) =  pos;
-			std::get<2>(successors_key) =  transition.GetChildren()[pos];
-
-			successors_iter = b_successors_cache.find(successors_key);
-			if(successors_iter == b_successors_cache.end())
-			{
-				StateSet set;
-				b_successors_cache.emplace(successors_key, set);
-				successors_iter = b_successors_cache.find(successors_key);
-			}
-			if (!isMember(transition.GetParent(), successors_iter->second))
-				successors_iter->second.insert(transition.GetParent());
+			successors[transition.GetSymbol()][0][1].insert(transition.GetParent());
+		}
+		for(size_t pos = 0; pos < transition.GetChildrenSize(); pos++)
+		{
+			successors[transition.GetSymbol()][pos][transition.GetChildren()[pos]].insert(transition.GetParent());
 		}
 	}
 }
+
+
+BisimulationBase::~BisimulationBase()
+{
+	for (size_t i = 0; i < input_size.alphabet; i++)
+	{
+		for (size_t j = 0; j < input_size.arity; j++)
+			delete[] successors[i][j];
+		delete[] successors[i];
+	}
+	delete[] successors;
+}
+
 
 void BisimulationBase::pruneRankedAlphabet()
 {
-	for(auto symbol : rankedAlphabet)
+	for(auto symbol : ranked_alphabet)
 	{
 		if(symbol.second == 0)
 		{
-			rankedAlphabet.erase(symbol);
+			ranked_alphabet.erase(symbol);
 		}
 	}
 }
 
-void BisimulationBase::getLeafCouples(StateSetCoupleSet &set)
+void BisimulationBase::getLeafCouples()
 {
-	for(auto symbol : rankedAlphabet){
+	for(auto symbol : ranked_alphabet){
 		if(symbol.second == 0)
 		{
-			StateSetCouple c;
-			for(auto transition : smaller){
-				if(transition.GetSymbol() == symbol.first)
-				{
-					c.first.insert(transition.GetParent());
-				}
-			}
-			for(auto transition : bigger){
-				if(transition.GetSymbol() == symbol.first)
-				{
-					c.second.insert(transition.GetParent());
-				}
-			}
-			set.insert(c);
+			todo.insert(std::make_pair(successors[symbol.first][0][0], successors[symbol.first][0][1]));
+			knownPairs.insert(std::make_pair(successors[symbol.first][0][0], successors[symbol.first][0][1]));
 		}
 	}
 }
 
-bool BisimulationBase::areLeavesEquivalent(StateSetCoupleSet &todo)
+bool BisimulationBase::areLeavesEquivalent()
 {
 	for(auto couple : todo)
 	{
@@ -116,98 +130,112 @@ bool BisimulationBase::areLeavesEquivalent(StateSetCoupleSet &todo)
 	return true;
 }
 
-void BisimulationBase::getPost(RankedSymbol &symbol, StateSetCouple &actual, StateSetCoupleSet &done)
+bool BisimulationBase::getPost(RankedSymbol &symbol)
 {
-	post.clear();
-	std::get<0>(successors_key) = symbol.first;
 	StateSetCouple next;
 	if(symbol.second == 1)
 	{
-		std::get<1>(successors_key) = 0;
-		getPostAtFixedPos(next, actual);
-		post.emplace(next);
+		getPostAtFixedPos(next, actual, symbol.first, 0);
+		if(!todoInsert(next))
+			return false;
 	}
 	else if (symbol.second == 2)
 	{
 		StateSet empty;
 		//actual at first position
-		std::get<1>(successors_key) = 0;
-		getPostAtFixedPos(next, actual);
+		getPostAtFixedPos(next, actual, symbol.first, 0);
 		for(auto pair : done)
 		{
 			StateSetCouple context;
 			//context at second position
-			std::get<1>(successors_key) = 1;
-			getPostAtFixedPos(context, pair);
+			getPostAtFixedPos(context, pair, symbol.first, 1);
 			context.first = intersection(context.first, next.first);
 			context.second = intersection(context.second, next.second);
-			post.emplace(context);
+			if(!todoInsert(context))
+				return false;
 		}
 
 		next.first.clear();
 		next.second.clear();
 		//actual at second position
-		std::get<1>(successors_key) = 1;
-		getPostAtFixedPos(next, actual);
+		getPostAtFixedPos(next, actual, symbol.first, 1);
 		for(auto pair : done)
 		{
 			StateSetCouple context;
 			//context at first position
-			std::get<1>(successors_key) = 0;
-			getPostAtFixedPos(context, pair);
+			getPostAtFixedPos(context, pair, symbol.first, 0);
 			context.first = intersection(context.first, next.first);
 			context.second = intersection(context.second, next.second);
-			post.emplace(context);
+			if(!todoInsert(context))
+				return false;
 		}
 	}
+	return true;
 }
 
-void BisimulationBase::getPostAtFixedPos(StateSetCouple &next, StateSetCouple &pair)
+void BisimulationBase::getPostAtFixedPos(StateSetCouple &next, StateSetCouple &pair, size_t symbol, size_t pos)
 {
 	for(auto state : pair.first)
 	{
-		std::get<2>(successors_key) = state;
-		successors_iter = s_successors_cache.find(successors_key); 
-		if(successors_iter != s_successors_cache.end())
-			for (auto parent: successors_iter->second)
-				next.first.insert(parent);
+		for(auto parent : successors[symbol][pos][state])
+			next.first.insert(parent);
 	}
 	for(auto state : pair.second)
 	{
-		std::get<2>(successors_key) = state;
-		successors_iter = b_successors_cache.find(successors_key); 
-		if(successors_iter != b_successors_cache.end())
-			for (auto parent: successors_iter->second)
-				next.second.insert(parent);
+		for(auto parent : successors[symbol][pos][state])
+			next.second.insert(parent);
 	}
 }
 
-bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCoupleSet &set)
+bool BisimulationBase::todoInsert(StateSetCouple &next)
 {
-	if(isMember(item, set))
+	if(knownPairs.find(next) == knownPairs.end())
 	{
-		return true;
+		knownPairs.emplace(next);
+		if(!isCoupleFinalStateEquivalent(next))
+		{
+			return false;
+		}
+		todo.emplace(next);
 	}
+	return true;
+}
 
+bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item)
+{
 	// pair_cnt1++;
 
 	bool changed = true;
-	std::vector<bool> used_s(set.size(), false);
-	std::vector<bool> used_b(set.size(), false);
+	std::vector<bool> used_s(knownPairs.size(), false);
+	std::vector<bool> used_b(knownPairs.size(), false);
+
+	auto self_iter = knownPairs.find(item);
+	int ps = 0;
+	for(auto set_iter = knownPairs.begin(); set_iter != knownPairs.end(); set_iter++)
+	{
+		if (self_iter == set_iter)
+		{
+			used_s[ps] = true;
+			used_b[ps] = true;
+			break;
+		}
+		ps++;
+	}
+
 	while(changed)
 	{
 		int i = 0;
 		changed = false;
-		for(auto set_item : set)
+		for(auto set_iter = knownPairs.begin(); set_iter != knownPairs.end(); set_iter++)
 		{
 			if(!used_s[i])
 			{
-				Expandable exp = isExpandableBy(item.first, set_item);
+				Expandable exp = isExpandableBy(item.first, set_iter);
 				if(exp == First || exp == Second)
 				{
 					changed = true;
 					used_s[i] = true;
-					for(auto si : (exp == First ? (set_item.first) : (set_item.second)))
+					for(auto si : (exp == First ? (set_iter->first) : (set_iter->second)))
 					{
 						item.first.insert(si);
 					}
@@ -215,24 +243,21 @@ bool BisimulationBase::isCongruenceClosureMember(StateSetCouple item, StateSetCo
 			}
 			if(!used_b[i])
 			{
-				Expandable exp = isExpandableBy(item.second, set_item);
+				Expandable exp = isExpandableBy(item.second, set_iter);
 				if(exp == First || exp == Second)
 				{
 					changed = true;
 					used_b[i] = true;
-					for(auto si : (exp == First ? (set_item.first) : (set_item.second)))
+					for(auto si : (exp == First ? (set_iter->first) : (set_iter->second)))
 					{
 						item.second.insert(si);
 					}
 				}
 			}
 			i++;
+			if (item.first == item.second)
+				return true;
 		}
-	}
-	if (item.first == item.second)
-	{
-		// true_cnt1++;
-		return true;
 	}
 	return false;
 }
@@ -241,6 +266,19 @@ Expandable BisimulationBase::isExpandableBy(StateSet &expandee, StateSetCouple &
 {
 	bool first_subset = isSubset(expander.first, expandee);
 	bool second_subset = isSubset(expander.second, expandee);
+	if (first_subset && second_subset)
+		return Both;
+	if (first_subset)
+		return Second;
+	if (second_subset)
+		return First;
+	return None;
+}
+
+Expandable BisimulationBase::isExpandableBy(StateSet &expandee, StateSetCoupleIter expander)
+{
+	bool first_subset = isSubset(expander->first, expandee);
+	bool second_subset = isSubset(expander->second, expandee);
 	if (first_subset && second_subset)
 		return Both;
 	if (first_subset)

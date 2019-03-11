@@ -51,40 +51,5 @@ bool BisimulationInclusion::isCoupleFinalStateEquivalent(StateSetCouple &couple)
 
 bool BisimulationInclusion::check()
 {
-	StateSetCoupleSet done, todo, knownPairs;
-	StateSetCouple actual;
-	getLeafCouples(knownPairs);
-	pruneRankedAlphabet();
-	todo = knownPairs;
-
-	if(!areLeavesEquivalent(todo))
-	{
-		return false;
-	}
-
-	while(!todo.empty())
-	{
-		actual = *todo.begin();
-		todo.erase(actual);
-		done.insert(actual);
-		knownPairs.insert(actual);
-
-		for(auto symbol : rankedAlphabet)
-		{
-			getPost(symbol, actual, done);
-			for(auto next : post)
-			{
-				if(!isCoupleFinalStateEquivalent(next))
-				{
-					return false;
-				}
-
-				if(!isCongruenceClosureMember(next, knownPairs))
-				{
-					todo.insert(next);
-				}
-			}
-		}
-	}
 	return true;
 }

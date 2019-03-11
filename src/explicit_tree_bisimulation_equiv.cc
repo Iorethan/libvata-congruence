@@ -49,12 +49,10 @@ bool BisimulationEquivalence::isCoupleFinalStateEquivalent(StateSetCouple &coupl
 
 bool BisimulationEquivalence::check()
 {
-	StateSetCoupleSet done, todo, knownPairs;
-	StateSetCouple actual;
-	getLeafCouples(todo);
+	getLeafCouples();
 	pruneRankedAlphabet();
 
-	if(!areLeavesEquivalent(todo))
+	if(!areLeavesEquivalent())
 	{
 		return false;
 	}
@@ -66,29 +64,17 @@ bool BisimulationEquivalence::check()
 		// pair_cnt1++;
 		actual = *todo.begin();
 		todo.erase(actual);
-		knownPairs.insert(actual);
-
-		if(isCongruenceClosureMember(actual, done))
-		{
-			done.insert(actual);
-			continue;
-		}
 		done.insert(actual);
 
-		for(auto symbol : rankedAlphabet)
+		if(isCongruenceClosureMember(actual))
 		{
-			getPost(symbol, actual, knownPairs);
-			for(auto next : post)
-			{
-				if(knownPairs.find(next) == knownPairs.end())
-				{
-					if(!isCoupleFinalStateEquivalent(next))
-					{
-						return false;
-					}
-					todo.insert(next);
-				}
-			}
+			continue;
+		}
+
+		for(auto symbol : ranked_alphabet)
+		{
+			if(!getPost(symbol))
+				return false;
 		}
 	}
 	return true;
