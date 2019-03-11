@@ -20,7 +20,6 @@ namespace ExplicitTreeUpwardBisimulation{
 	using namespace VATA;
 
 	struct TodoComparator;
-	struct InputSize;
 
 	using StateType      = ExplicitTreeAutCore::StateType;
 	using SymbolType     = ExplicitTreeAutCore::SymbolType;
@@ -37,9 +36,6 @@ namespace ExplicitTreeUpwardBisimulation{
 
 	typedef std::pair<SymbolType, size_t> RankedSymbol;
 	typedef std::set<RankedSymbol> RankedAlphabet;
-
-	// (symbol, position, state)
-	typedef std::tuple<size_t, size_t, size_t> PostKey;
 
 	struct InputSize {
 		size_t alphabet;

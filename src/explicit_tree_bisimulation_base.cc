@@ -113,6 +113,7 @@ void BisimulationBase::getLeafCouples()
 		if(symbol.second == 0)
 		{
 			todo.insert(std::make_pair(successors[symbol.first][0][0], successors[symbol.first][0][1]));
+			done.insert(std::make_pair(successors[symbol.first][0][0], successors[symbol.first][0][1]));
 			knownPairs.insert(std::make_pair(successors[symbol.first][0][0], successors[symbol.first][0][1]));
 		}
 	}
@@ -144,31 +145,33 @@ bool BisimulationBase::getPost(RankedSymbol &symbol)
 		StateSet empty;
 		//actual at first position
 		getPostAtFixedPos(next, actual, symbol.first, 0);
-		for(auto pair : done)
-		{
-			StateSetCouple context;
-			//context at second position
-			getPostAtFixedPos(context, pair, symbol.first, 1);
-			context.first = intersection(context.first, next.first);
-			context.second = intersection(context.second, next.second);
-			if(!todoInsert(context))
-				return false;
-		}
+		if(!next.first.empty() || !next.second.empty())
+			for(auto pair : done)
+			{
+				StateSetCouple context;
+				//context at second position
+				getPostAtFixedPos(context, pair, symbol.first, 1);
+				context.first = intersection(context.first, next.first);
+				context.second = intersection(context.second, next.second);
+				if(!todoInsert(context))
+					return false;
+			}
 
 		next.first.clear();
 		next.second.clear();
 		//actual at second position
 		getPostAtFixedPos(next, actual, symbol.first, 1);
-		for(auto pair : done)
-		{
-			StateSetCouple context;
-			//context at first position
-			getPostAtFixedPos(context, pair, symbol.first, 0);
-			context.first = intersection(context.first, next.first);
-			context.second = intersection(context.second, next.second);
-			if(!todoInsert(context))
-				return false;
-		}
+		if(!next.first.empty() || !next.second.empty())
+			for(auto pair : done)
+			{
+				StateSetCouple context;
+				//context at first position
+				getPostAtFixedPos(context, pair, symbol.first, 0);
+				context.first = intersection(context.first, next.first);
+				context.second = intersection(context.second, next.second);
+				if(!todoInsert(context))
+					return false;
+			}
 	}
 	return true;
 }

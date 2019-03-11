@@ -64,12 +64,13 @@ bool BisimulationEquivalence::check()
 		// pair_cnt1++;
 		actual = *todo.begin();
 		todo.erase(actual);
-		done.insert(actual);
 
 		if(isCongruenceClosureMember(actual))
 		{
 			continue;
 		}
+
+		done.insert(actual);
 
 		for(auto symbol : ranked_alphabet)
 		{
