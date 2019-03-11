@@ -96,15 +96,29 @@ namespace ExplicitTreeUpwardBisimulation{
 
 	template <typename type> bool isSubset(const std::set<type> &left, const std::set<type> &right)
 	{
-		std::set<type> difference;
-		set_difference(
-			left.begin(),
-			left.end(),
-			right.begin(),
-			right.end(),
-			std::inserter(difference, difference.begin())
-		);
-		return difference.size() == 0;
+		auto r = right.begin();
+		auto re = right.end();
+		for(auto l = left.begin(); l != left.end(); l++)
+		{
+			while(r != re && *r < *l){
+				r++;
+			}
+			if(r == re || *r > *l)
+			{
+				return false;
+			}	
+		}	
+		return true;
+
+		// std::set<type> difference;
+		// set_difference(
+		// 	left.begin(),
+		// 	left.end(),
+		// 	right.begin(),
+		// 	right.end(),
+		// 	std::inserter(difference, difference.begin())
+		// );
+		// return difference.size() == 0;
 	}
 
 GCC_DIAG_OFF(effc++)
