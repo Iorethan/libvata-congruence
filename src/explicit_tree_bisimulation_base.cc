@@ -20,7 +20,8 @@ BisimulationBase::BisimulationBase(
 	: smaller(smaller), bigger(bigger),
 		ranked_alphabet(), actual(),
 		todo(), done(), knownPairs(),
-		input_size(), successors()
+		input_size(), successors(),
+		set_successors(), set_successors_iter()
 {
 	for(auto transition : smaller)
 	{
@@ -58,6 +59,12 @@ BisimulationBase::BisimulationBase(
         for (size_t j = 0; j < input_size.arity; j++)
             successors[i][j] = new StateSet [input_size.states]();
     }
+	
+	set_successors = new std::unordered_map<StateSet, StateSet, StateSetHash> *[input_size.alphabet]();
+    for (size_t i = 0; i < input_size.alphabet; i++)
+    {
+        set_successors[i] = new std::unordered_map<StateSet, StateSet, StateSetHash>[input_size.arity]();
+    }
 
 	for(auto transition : smaller)
 	{
@@ -93,6 +100,13 @@ BisimulationBase::~BisimulationBase()
 		delete[] successors[i];
 	}
 	delete[] successors;
+
+
+	for (size_t i = 0; i < input_size.alphabet; i++)
+	{
+		delete[] set_successors[i];
+	}
+	delete[] set_successors;
 }
 
 
@@ -178,16 +192,45 @@ bool BisimulationBase::getPost(RankedSymbol &symbol)
 
 void BisimulationBase::getPostAtFixedPos(StateSetCouple &next, StateSetCouple &pair, size_t symbol, size_t pos)
 {
-	for(auto state : pair.first)
+	set_successors_iter = set_successors[symbol][pos].find(pair.first);
+	if(set_successors_iter != set_successors[symbol][pos].end())
 	{
-		for(auto parent : successors[symbol][pos][state])
+		for(auto parent : set_successors_iter->second)
 			next.first.insert(parent);
 	}
-	for(auto state : pair.second)
+	else
 	{
-		for(auto parent : successors[symbol][pos][state])
+		auto iter = set_successors[symbol][pos].emplace(std::make_pair(pair.first, StateSet()));
+		for(auto state : pair.first)
+		{
+			for(auto parent : successors[symbol][pos][state])
+			{
+				next.first.insert(parent);
+				iter.first->second.insert(parent);
+			}
+		}
+	}
+
+	set_successors_iter = set_successors[symbol][pos].find(pair.second);
+	if(set_successors_iter != set_successors[symbol][pos].end())
+	{
+		for(auto parent : set_successors_iter->second)
 			next.second.insert(parent);
 	}
+	else
+	{
+		auto iter = set_successors[symbol][pos].emplace(std::make_pair(pair.second, StateSet()));
+		for(auto state : pair.second)
+		{
+			for(auto parent : successors[symbol][pos][state])
+			{
+				next.second.insert(parent);
+				iter.first->second.insert(parent);
+			}
+		}
+	}
+	
+
 }
 
 bool BisimulationBase::todoInsert(StateSetCouple &next)

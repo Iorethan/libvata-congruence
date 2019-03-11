@@ -53,15 +53,7 @@ namespace ExplicitTreeUpwardBisimulation{
 		}
 	};
 
-	struct PostKeyHash
-	{
-		std::size_t operator () (const std::tuple<size_t, size_t, size_t> &p) const
-		{
-			return std::get<1>(p) + (std::get<0>(p) << 4) + (std::get<2>(p) << 16);
-		}
-	};
-	
-	struct SetPostKeyHash
+	struct StateSetHash
 	{
 		std::size_t operator () (const StateSet &p) const
 		{
@@ -131,12 +123,8 @@ GCC_DIAG_ON(effc++)
 
 			InputSize input_size;
 			StateSet*** successors;
-			
-			// cache
-			// PostKey successors_key;
-			// std::unordered_map<PostKey, StateSet, PostKeyHash>::iterator successors_iter;
-			// std::unordered_map<PostKey, StateSet, PostKeyHash> s_successors_cache;
-			// std::unordered_map<PostKey, StateSet, PostKeyHash> b_successors_cache;
+			std::unordered_map<StateSet, StateSet, StateSetHash>** set_successors;
+			std::unordered_map<StateSet, StateSet, StateSetHash>::iterator set_successors_iter;
 
 		public:
 			BisimulationBase(
