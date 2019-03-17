@@ -27,6 +27,7 @@ namespace ExplicitTreeUpwardBisimulation{
 			
 			bool check();			
 			bool isCoupleFinalStateEquivalent(StateSetCouple &couple);
+			bool isCongruenceClosureMember(StateSetCouple item);
 	};
 }
 #endif

@@ -109,16 +109,6 @@ namespace ExplicitTreeUpwardBisimulation{
 			}	
 		}	
 		return true;
-
-		// std::set<type> difference;
-		// set_difference(
-		// 	left.begin(),
-		// 	left.end(),
-		// 	right.begin(),
-		// 	right.end(),
-		// 	std::inserter(difference, difference.begin())
-		// );
-		// return difference.size() == 0;
 	}
 
 GCC_DIAG_OFF(effc++)
@@ -161,7 +151,7 @@ GCC_DIAG_ON(effc++)
 
 			bool todoInsert(StateSetCouple &next);
 
-			bool isCongruenceClosureMember(StateSetCouple item);
+			virtual bool isCongruenceClosureMember(StateSetCouple item) = 0;
 			Expandable isExpandableBy(StateSet &expandee, StateSetCouple &expander);
 			Expandable isExpandableBy(StateSet &expandee, StateSetCoupleIter expander);
 

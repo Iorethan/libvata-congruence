@@ -47,6 +47,67 @@ bool BisimulationEquivalence::isCoupleFinalStateEquivalent(StateSetCouple &coupl
 	return set_s.empty() == set_b.empty();
 }
 
+bool BisimulationEquivalence::isCongruenceClosureMember(StateSetCouple item)
+{
+	// pair_cnt1++;
+
+	bool changed = true;
+	std::vector<bool> used_s(knownPairs.size(), false);
+	std::vector<bool> used_b(knownPairs.size(), false);
+
+	auto self_iter = knownPairs.find(item);
+	int ps = 0;
+	for(auto set_iter = knownPairs.begin(); set_iter != knownPairs.end(); set_iter++)
+	{
+		if (self_iter == set_iter)
+		{
+			used_s[ps] = true;
+			used_b[ps] = true;
+			break;
+		}
+		ps++;
+	}
+
+	while(changed)
+	{
+		int i = 0;
+		changed = false;
+		for(auto set_iter = knownPairs.begin(); set_iter != knownPairs.end(); set_iter++)
+		{
+			if(!used_s[i])
+			{
+				Expandable exp = isExpandableBy(item.first, set_iter);
+				if(exp == First || exp == Second)
+				{
+					changed = true;
+					used_s[i] = true;
+					for(auto si : (exp == First ? (set_iter->first) : (set_iter->second)))
+					{
+						item.first.insert(si);
+					}
+				}
+			}
+			if(!used_b[i])
+			{
+				Expandable exp = isExpandableBy(item.second, set_iter);
+				if(exp == First || exp == Second)
+				{
+					changed = true;
+					used_b[i] = true;
+					for(auto si : (exp == First ? (set_iter->first) : (set_iter->second)))
+					{
+						item.second.insert(si);
+					}
+				}
+			}
+			i++;
+			if (item.first == item.second)
+				return true;
+		}
+	}
+	return false;
+}
+
 bool BisimulationEquivalence::check()
 {
 	getLeafCouples();
