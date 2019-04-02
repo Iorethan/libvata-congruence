@@ -1,5 +1,9 @@
 # libVATA - A C++ library for efficient manipulation with non-deterministic finite (tree) automata
-[![Build Status](https://travis-ci.org/ondrik/libvata.svg?branch=master)](https://travis-ci.org/ondrik/libvata)
+
+## Disclaimer
+This is a static clone of libvata with bisimulation the up-to congruence
+algorithm implemented. For presentation purposes on Excel@FIT 2019 only.
+Master version of libvata can be found at https://github.com/ondrik/libvata.
 
 ## About
 libvata is a highly optimised non-deterministic finite tree automata library.
@@ -26,7 +30,7 @@ the git version control system installed.
 To download the library, run
 
 ```
-  $ git clone git://github.com/ondrik/libvata.git
+  $ git clone https://github.com/Iorethan/libvata-congruence.git
 ```
 
 This creates a local independent copy of the source code repository.
