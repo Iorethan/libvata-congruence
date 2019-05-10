@@ -23,13 +23,16 @@ BisimulationEquivalence::BisimulationEquivalence(
 	{
 	}
 
+// Check if pairs are final state equivalent (both or neither contain final state).
 bool BisimulationEquivalence::isCoupleFinalStateEquivalent(StateSetCouple &couple)
 {
+	// If only one is nonempty their are not equivalent.
 	if(couple.first.empty() != couple.second.empty())
 	{
 		return false;
 	}
 
+	// Calculate intersection with set of final states.
 	StateSet set_s, set_b;
 	set_intersection
 	(
@@ -44,17 +47,18 @@ bool BisimulationEquivalence::isCoupleFinalStateEquivalent(StateSetCouple &coupl
 		bigger.GetFinalStates().begin(), bigger.GetFinalStates().end(),
 		std::inserter(set_b, set_b.begin())
 	);
+	// Return true if intersections are empty or nonempty at the same time, false othervise.
 	return set_s.empty() == set_b.empty();
 }
 
+// Check if pair is in congruence closure.
 bool BisimulationEquivalence::isCongruenceClosureMember(StateSetCouple item)
 {
-	// pair_cnt1++;
-
 	bool changed = true;
 	std::vector<bool> used_s(knownPairs.size(), false);
 	std::vector<bool> used_b(knownPairs.size(), false);
 
+	// Prepare data structure to keep track which pairs were already used for expansion.
 	auto self_iter = knownPairs.find(item);
 	int ps = 0;
 	for(auto set_iter = knownPairs.begin(); set_iter != knownPairs.end(); set_iter++)
@@ -68,12 +72,14 @@ bool BisimulationEquivalence::isCongruenceClosureMember(StateSetCouple item)
 		ps++;
 	}
 
+	// Compute fix point by expanding both macrostates of the given pair.
 	while(changed)
 	{
 		int i = 0;
 		changed = false;
 		for(auto set_iter = knownPairs.begin(); set_iter != knownPairs.end(); set_iter++)
 		{
+			// Try to expand given macroste with pair from knownPairs.
 			if(!used_s[i])
 			{
 				Expandable exp = isExpandableBy(item.first, set_iter);
@@ -87,6 +93,7 @@ bool BisimulationEquivalence::isCongruenceClosureMember(StateSetCouple item)
 					}
 				}
 			}
+			// Try to expand given macroste with pair from knownPairs.
 			if(!used_b[i])
 			{
 				Expandable exp = isExpandableBy(item.second, set_iter);
@@ -101,43 +108,48 @@ bool BisimulationEquivalence::isCongruenceClosureMember(StateSetCouple item)
 				}
 			}
 			i++;
+			// Check if both macrostates have the same fixed point (they are in closure).
 			if (item.first == item.second)
+			{
 				return true;
+			}
 		}
 	}
+	// Fixed point not found (not in closure).
 	return false;
 }
 
+// Equivalence check.
 bool BisimulationEquivalence::check()
 {
+	// Calculate macrostate pairs for leaf rules and remove leaf symbols from alphabet (no longer needed).
 	getLeafCouples();
 	pruneRankedAlphabet();
 
+	// Check macrostate leaf pairs equivalence.
 	if(!areLeavesEquivalent())
 	{
 		return false;
 	}
 
-	int i = 0;
+	// Loop over pairs to be processed and calculate their successors.
 	while(!todo.empty())
 	{
-		i++;
-		// pair_cnt1++;
-		actual = *todo.begin();
-		todo.erase(actual);
+		actual = *todo.begin();			// Select pair to be proccessed.
+		todo.erase(actual);				// Remove it from todo.
 
-		if(isCongruenceClosureMember(actual))
+		if(isCongruenceClosureMember(actual))		// Check if actual is in congruence closure and skip it if it is.
 		{
 			continue;
 		}
 
-		done.insert(actual);
+		done.insert(actual);						// Add actual to processed pairs.
 
-		for(auto symbol : ranked_alphabet)
+		for(auto symbol : ranked_alphabet)			// Calculate successors of actual.
 		{
-			if(!getPost(symbol))
+			if(!getPost(symbol))					// If non matching pair (counterexample) was generated return false.
 				return false;
 		}
 	}
-	return true;
+	return true;									// All pairs were processed and no counterexample found, return true.
 }

@@ -166,12 +166,11 @@ public:   // methods
 
 
 	static bool CheckEquivalence(
-		const BDDBottomUpTreeAut&                 smaller,
-		const BDDBottomUpTreeAut&                 bigger,
-		const VATA::EqParam&                 params)
+		__attribute__((unused)) const BDDBottomUpTreeAut&                 smaller,
+		__attribute__((unused)) const BDDBottomUpTreeAut&                 bigger,
+		__attribute__((unused)) const VATA::EqParam&                 params)
 	{
-		assert(false);
-		return false;
+		throw NotImplementedException(__func__);
 	}
 
 	/**

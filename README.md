@@ -2,7 +2,7 @@
 
 ## Disclaimer
 This is a static clone of libvata with bisimulation the up-to congruence
-algorithm implemented. For presentation purposes on Excel@FIT 2019 only.
+algorithm implemented. For presentation purposes of Master's thesis only.
 Master version of libvata can be found at https://github.com/ondrik/libvata.
 
 ## About

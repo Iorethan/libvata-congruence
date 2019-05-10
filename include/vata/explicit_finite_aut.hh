@@ -265,12 +265,11 @@ public: // public methods
 	}
 
 	static bool CheckEquivalence(
-		const ExplicitFiniteAut&                 smaller,
-		const ExplicitFiniteAut&                 bigger,
-		const VATA::EqParam&                 params)
+		__attribute__((unused)) const ExplicitFiniteAut&                 smaller,
+		__attribute__((unused)) const ExplicitFiniteAut&                 bigger,
+		__attribute__((unused)) const VATA::EqParam&                 params)
 	{
-		assert(false);
-		return false;
+		throw NotImplementedException(__func__);
 	}
 
 

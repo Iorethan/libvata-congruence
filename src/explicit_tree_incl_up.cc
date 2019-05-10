@@ -402,7 +402,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	while (!next.empty())
 	{
-		pair_cnt2++;
+		// pair_cnt2++;
 
 		q = next.begin()->first;
 		Q = *next.begin()->second;
@@ -415,6 +415,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		if (!smallerIndex.count(q))
 		{
+			// pair_cnt2++;
 			continue;
 		}
 		auto& smallerTransitionIndex = smallerIndex.at(q);

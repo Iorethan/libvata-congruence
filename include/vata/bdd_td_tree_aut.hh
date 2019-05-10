@@ -208,12 +208,11 @@ public:   // public methods
 	}
 
 	static bool CheckEquivalence(
-		const BDDTopDownTreeAut&                 smaller,
-		const BDDTopDownTreeAut&                 bigger,
-		const VATA::EqParam&                 params)
+		__attribute__((unused)) const BDDTopDownTreeAut&                 smaller,
+		__attribute__((unused)) const BDDTopDownTreeAut&                 bigger,
+		__attribute__((unused)) const VATA::EqParam&                 params)
 	{
-		assert(false);
-		return false;
+		throw NotImplementedException(__func__);
 	}
 
 

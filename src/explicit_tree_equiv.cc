@@ -23,6 +23,7 @@
 
 using VATA::ExplicitTreeAutCore;
 using VATA::ExplicitUpwardInclusion;
+using VATA::ExplicitDownwardInclusion;
 
 bool ExplicitTreeAutCore::CheckEquivalence(
 	const ExplicitTreeAutCore&             smaller,
@@ -40,6 +41,7 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 
 	switch (params.GetOptions())
 	{
+		// todo compute simulation
 		case EqParam::ANTICHAINS_UP:
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
@@ -47,6 +49,7 @@ bool ExplicitTreeAutCore::CheckEquivalence(
 				Util::Identity(states)) &&
                 ExplicitUpwardInclusion::Check(newBigger, newSmaller,
 				Util::Identity(states));
+			// duplicate for algo with simulation
 		}
 
 		case EqParam::ANTICHAINS_DOWN:

@@ -25,9 +25,9 @@ namespace ExplicitTreeUpwardBisimulation{
 				const ExplicitTreeAutCore&        bigger
 			);
 			
-			bool check();			
-			bool isCoupleFinalStateEquivalent(StateSetCouple &couple);
-			bool isCongruenceClosureMember(StateSetCouple item);
+			bool check();												// Perform equivalence check.		
+			bool isCoupleFinalStateEquivalent(StateSetCouple &couple);	// Check if both or neither of macrostates contain final states.
+			bool isCongruenceClosureMember(StateSetCouple item);		// Check if pair is in congruence closure.
 	};
 }
 #endif
